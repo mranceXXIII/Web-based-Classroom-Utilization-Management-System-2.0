@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="adminStyle.css">
+
+    <title>Document</title>
+</head>
+<body>
+
+
+   <div class="cont">
+   
+    <img  class="logoBack" src="images/rsuLogo.png" alt="hellow to the world">
+
+        <div class="secCont">
+
+          <span style="cursor:pointer" onclick="openNav()">&#9776;</span>
+
+          <div id="myNav" class="overlay" >
+            <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+            <div class="overlay-content">
+                   <div class="hiddenNav">
+                            <ul>
+                                <li class="tablinks" onclick="openTab(event, 'Home')">Home</li>
+                                <li class="tablinks" onclick="openTab(event, 'Blocks')">Blocks</li>
+                                <li class="tablinks" onclick="openTab(event, 'Schedules')">Schedulers</li>
+                                <li class="tablinks" onclick="openTab(event, 'Instructor')">Instructors</li>
+                                <li class="tablinks" onclick="openTab(event, 'Logout')">Logout</li>
+                            </ul>
+                    </div>
+            </div>
+          </div>
+
+
+                <div class="scholNameCont">
+                  <div class="scholName">
+                    <img  class="scholNLogo" src="images/rsuLogo.png" alt="hellow to the world">
+                    <h1>Romblon State University-Cajidiocan Campus</h1>
+                </div>
+
+                </div>
+
+                <div class="G_tFCont">
+
+                     <div class="graybox"> <!-- the standard in this part upto line 36 should be <nav> but I styled it too early-->
+                        <h3>Admin</h3>
+                            <ul>
+                                <li id="HomeLi"class="tablinks" onclick="openTab(event, 'Home')">Home</li>
+                                <li class="tablinks" onclick="openTab(event, 'Blocks')">Blocks</li>
+                                <li class="tablinks" onclick="openTab(event, 'Schedules')">Schedulers</li>
+                                <li class="tablinks" onclick="openTab(event, 'Instructor')">Instructors</li>
+                                <li class="tablinks" onclick="openTab(event, 'Logout')">Logout</li>
+                            </ul>
+                    </div>
+
+                    <div id="Home" class=" tabcontent Home" id="div1">
+                        <h1 style="text-align: center;margin-top: 0;padding-top: 0;">Classroom Utilization Management System</h1>
+                        <form >
+                          
+                            <div class="searchDiv">
+                                <input type="text" id="searchHome" name="searchHom" class="searchInp">
+                                <input type="submit" value="Search" class="searchPress">
+                                <input type="button" value="Add" class="addOpt">
+                            </div>
+                            
+                            <div class="overflowDiv"><!--this is the table for the home content for overflow-->
+                                <table id="HomeTable" class="homeTblCl">                                  
+                                    <tr>
+                                      <th>Column 1 fdkdkfdhfdfjdfjl</th>
+                                      <th>Column 2</th>
+                                      <th>Column 3</th>
+                                      <th>Column 4</th>
+                                      <th>Column 5</th>
+                                      <th>Column 6</th>
+                                    </tr>
+                                    
+                                    <tr>
+                                        <td>hellow</td>
+                                      <td>hellow</td>
+                                      <td>hellow</td>
+                                      <td>hellow</td>
+                                      <td>hellow</td>
+                                      <td>hellow</td>
+                                    </tr>     
+                                    <tr>
+                                      <td>hellow</td>
+                                    <td>hellow</td>
+                                    <td>hellow</td>
+                                    <td>hellow</td>
+                                    <td>hellow</td>
+                                    <td>hellow</td>
+                                  </tr>  
+
+                                  <tr>
+                                    <td>hellow</td>
+                                  <td>hellow</td>
+                                  <td>hellow</td>
+                                  <td>hellow</td>
+                                  <td>hellow</td>
+                                  <td>hellow</td>
+                                </tr>     
+                                <tr>
+                                  <td>hellow</td>
+                                <td>hellow</td>
+                                <td>hellow</td>
+                                <td>hellow</td>
+                                <td>hellow</td>
+                                <td>hellow</td>
+                              </tr>  
+                              <tr>
+                                <td>hellow</td>
+                              <td>hellow</td>
+                              <td>hellow</td>
+                              <td>hellow</td>
+                              <td>hellow</td>
+                              <td>hellow</td>
+                            </tr>     
+                            <tr>
+                              <td>hellow</td>
+                            <td>hellow</td>
+                            <td>hellow</td>
+                            <td>hellow</td>
+                            <td>hellow</td>
+                            <td>hellow</td>
+                          </tr>  
+                          <tr>
+                            <td>hellow</td>
+                          <td>hellow</td>
+                          <td>hellow</td>
+                          <td>hellow</td>
+                          <td>hellow</td>
+                          <td>hellow</td>
+                        </tr>     
+                        <tr>
+                          <td>hellow</td>
+                        <td>hellow</td>
+                        <td>hellow</td>
+                        <td>hellow</td>
+                        <td>hellow</td>
+                        <td>hellow</td>
+                      </tr>  
+                      <tr>
+                        <td>hellow</td>
+                      <td>hellow</td>
+                      <td>hellow</td>
+                      <td>hellow</td>
+                      <td>hellow</td>
+                      <td>hellow</td>
+                    </tr>     
+                    <tr>
+                      <td>hellow</td>
+                    <td>hellow</td>
+                    <td>hellow</td>
+                    <td>hellow</td>
+                    <td>hellow</td>
+                    <td>hellow</td>
+                  </tr>  
+                  <tr>
+                    <td>hellow</td>
+                  <td>hellow</td>
+                  <td>hellow</td>
+                  <td>hellow</td>
+                  <td>hellow</td>
+                  <td>hellow</td>
+                </tr>     
+                <tr>
+                  <td>hellow</td>
+                <td>hellow</td>
+                <td>hellow</td>
+                <td>hellow</td>
+                <td>hellow</td>
+                <td>hellow</td>
+              </tr>  
+              <tr>
+                <td>hellow</td>
+              <td>hellow</td>
+              <td>hellow</td>
+              <td>hellow</td>
+              <td>hellow</td>
+              <td>hellow</td>
+            </tr>     
+            <tr>
+              <td>hellow</td>
+            <td>hellow</td>
+            <td>hellow</td>
+            <td>hellow</td>
+            <td>hellow</td>
+            <td>hellow</td>
+          </tr>  
+          <tr>
+            <td>hellow</td>
+          <td>hellow</td>
+          <td>hellow</td>
+          <td>hellow</td>
+          <td>hellow</td>
+          <td>hellow</td>
+        </tr>     
+        <tr>
+          <td>hellow</td>
+        <td>hellow</td>
+        <td>hellow</td>
+        <td>hellow</td>
+        <td>hellow</td>
+        <td>hellow</td>
+      </tr>  
+      <tr>
+        <td>hellow</td>
+      <td>hellow</td>
+      <td>hellow</td>
+      <td>hellow</td>
+      <td>hellow</td>
+      <td>hellow</td>
+    </tr>     
+    <tr>
+      <td>hellow</td>
+    <td>hellow</td>
+    <td>hellow</td>
+    <td>hellow</td>
+    <td>hellow</td>
+    <td>hellow</td>
+  </tr>  
+                                        
+                                  </table>
+                              </form>   
+                            </div>
+                    </div>
+
+                    <!-----     blocks section   -->
+
+                    <div id="Blocks" class="tabcontent blockSec" style="display: none;">
+                      <h1 style="text-align: center;margin-top: 0;padding-top: 0;">Classroom Utilization Management System</h1>
+                        <form action="">
+                          <div class="searchDiv">
+                            <h3>Blocks List</h3>
+                            <input type="text" id="searchBlock" name="searchBloc" class="searchInp">
+                            <input type="submit" value="Search" class="searchPress">
+                            <input type="button" value="Add" class="addOpt">
+                        </div>
+
+                        <div class="overflowDiv">
+                          <ul class="blockUL" id="blockul">
+                            
+
+                            <li><p>BSIT III-123</p><button >remove</button></li>
+                            <li><p>BSIT III-123</p><button >remove</button></li>
+                            <li><p>BSIT III-123</p><button >remove</button></li>
+                            <li><p>BSIT III-123</p><button >remove</button></li>
+                            <li><p>BSIT III-123</p><button >remove</button></li>
+                            <li><p>BSIT III-123</p><button >remove</button></li>
+                            <li><p>BSIT III-123</p><button >remove</button></li>
+                            <li><p>BSIT III-123</p><button >remove</button></li>
+                            <li><p>BSIT III-123</p><button >remove</button></li>
+                            <li><p>BSIT III-123</p><button >remove</button></li>
+
+                            <li><p>BSIT III-123</p><button >remove</button></li>
+                            <li><p>BSIT III-123</p><button >remove</button></li>
+                            <li><p>BSIT III-123</p><button >remove</button></li>
+                            <li><p>BSIT III-123</p><button >remove</button></li>
+                            <li><p>BSIT III-123</p><button >remove</button></li>
+                            <li><p>BSIT III-123</p><button >remove</button></li>
+                            <li><p>BSIT III-123</p><button >remove</button></li>
+                            <li><p>BSIT III-123</p><button >remove</button></li>
+                            
+                          </ul>
+
+
+                        </div>
+                              
+                        </form>
+                    </div>
+                    <!-----    end of blocks section   -->
+
+                    <!-----     schedules section   -->
+
+                    <div id="Schedules" class="tabcontent SchedSec" style="display: none;">
+                    <h1 style="text-align: center;margin-top: 0;padding-top: 0;">Classroom Utilization Management System</h1>
+                      <form action="">
+                        <div class="searchDiv">
+                          <input type="text" id="searchSched" name="searchSche" class="searchInp">
+                          <input type="submit" value="Search" class="searchPress">
+                          <input type="button" value="Add" class="addOpt">
+                      </div>
+                      
+                      <div class="overflowDiv"><!--this is the table for the home content for overflow-->
+                        <table id="HomeTable" class="homeTblSched">                                  
+                            <tr>
+                              <th>Column 1 fdkdkfdhfdfjdfjl</th>
+                              <th>Column 2</th>
+                              <th>Column 3</th>
+                              <th>Column 4</th>
+                            </tr>
+                            
+                            <tr>
+                                <td>hellow</td>
+                              <td>hellow</td>
+                              <td>hellow</td>
+                              <td>hellow</td>
+                            </tr>     
+                            <tr>
+                              <td>hellow</td>
+                            <td>hellow</td>
+                            <td>hellow</td>
+                            <td>hellow</td>
+                          </tr>  
+                                
+                          </table>
+                      </form>   
+                    </div>
+
+                      </form>
+                  </div>
+
+                    <!-----    end of  schedules section   -->
+
+                    <!--        Instructor section    -->
+
+                    <div id="Instructor" class="tabcontent InstructSec" style="display: none;">
+                      <h1 style="text-align: center;margin-top: 0;padding-top: 0;">Classroom Utilization Management System</h1>
+                        <form action="">
+                          <div class="searchDiv">
+                            <h3>Instructor List</h3>
+                            <input type="text" id="searchInstruct" name="searchInstruc" class="searchInp">
+                            <input type="submit" value="Search"class="searchPress">
+                            <input type="button" value="Add" class="addOpt">
+                        </div>
+                        
+                        <div class="overflowDiv">
+                          <ul class="instructUL" id="instructul">
+                            
+
+                            <li><p>Mr. Rodel D. Bacuna</p><button >remove</button></li>
+                            <li><p>Mr. Francis Carabuena</p><button >remove</button></li>
+                            <li><p>Mr. Elizear Repil</p><button >remove</button></li>
+                            <li><p>Mr. John Paul Fontamillas</p><button >remove</button></li>
+                            <li><p>Mr. Elizear Repil</p><button >remove</button></li>
+                            <li><p>Mr. John Paul Fontamillas</p><button >remove</button></li>
+                            <li><p>Mr. Elizear Repil</p><button >remove</button></li>
+                            <li><p>Mr. John Paul Fontamillas</p><button >remove</button></li>
+                            <li><p>Mr. Elizear Repil</p><button >remove</button></li>
+                            <li><p>Mr. John Paul Fontamillas</p><button >remove</button></li>
+                            <li><p>Mr. Elizear Repil</p><button >remove</button></li>
+                            <li><p>Mr. John Paul Fontamillas</p><button >remove</button></li>
+                          </ul>
+
+
+                        </div>
+
+                        </form>
+                    </div>
+                    <!--           end of instructor section  -->
+
+                     <!--        logout section    -->
+
+                     <div id="Logout" class="tabcontent LogoutSec" style="display: none;">
+                      <h1 style="text-align: center;margin-top: 0;padding-top: 0;">Classroom Utilization Management System</h1>
+                        <form action="">
+                         
+  
+                        </form>
+                    </div>
+                    <!--           end of instructor section  -->
+                </div>
+
+                
+        </div>
+    
+   </div>
+<footer>
+
+  
+</footer>
+   <script src="adminScript.js"></script><!--for the javascript styling-->
+
+</body>
+</html>
