@@ -163,6 +163,7 @@ Selection follows references/module-mapping-guide.md for the Full-Stack / Web Ap
 - context/RULES.md: locks config.php files and restricts writes to target feature areas.
 - context/PRD.md: captures product goals and role requirements with placeholders.
 - context/TASKS.md: tracks the remediation work from Section 6.
+- **Provisioned with user approval on 2026-09-29:** context/ARCHITECTURE.md, context/SCHEMA.md, context/RULES.md, context/PRD.md, context/TASKS.md, .agents/AGENTS.md, and .agents/shared/SHARED_RULES.md. Verified technical facts are pre-filled. Business decisions remain as [PLACEHOLDER: ...] markers for human review.
 
 ## 9. System Prompt Framing for Downstream Agents
 
