@@ -1,4 +1,4 @@
-# Project Context: Web-based Classroom Utilization Management System 2.0
+# Web-based Classroom Utilization Management System 2.0
 
 - **Project:** Web-based Classroom Utilization Management System 2.0
 - **Repository:** https://github.com/mranceXXIII/Web-based-Classroom-Utilization-Management-System-2.0.git
