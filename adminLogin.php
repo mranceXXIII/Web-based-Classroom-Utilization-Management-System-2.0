@@ -117,18 +117,19 @@ include('rsuHeader.php');
 
     .login-container {
       position: relative;
-      background-color: #ffffff;
-      border-radius: 4px;
-      background-color: rgba(255, 255, 255, 0.1);
-      /* box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); */
-      margin: 100px auto;
-      max-width: 270px;
-      padding: 10px;
-      top: -80px;
+      background-color: rgba(255, 255, 255, 0.92);
+      border-radius: 8px;
+      border-top: 6px solid #3D9B8A;
+      box-shadow: 0 4px 14px rgba(21, 36, 31, 0.18);
+      margin: 48px auto;
+      max-width: 280px;
+      padding: 16px;
+      font-family: Poppins, sans-serif;
     }
 
     h2 {
       text-align: center;
+      color: #1F5A50;
     }
 
     form {
@@ -142,12 +143,12 @@ include('rsuHeader.php');
     input[type="password"] {
       margin-bottom: 10px;
       padding: 10px;
-      border: 2px solid black;
+      border: 1.5px solid #9FC9BC;
       border-radius: 10px;
     }
 
     button {
-      background-color: green;
+      background-color: #3D9B8A;
       border: none;
       color: white;
       cursor: pointer;
@@ -155,7 +156,7 @@ include('rsuHeader.php');
     }
 
     button:hover {
-      background-color: black;
+      background-color: #2E7A6C;
     }
 
     .error {
@@ -165,7 +166,8 @@ include('rsuHeader.php');
     }
 
     .c-button {
-      background-color: blue;
+      background-color: #EDC94F;
+      color: #15241F;
     }
 
 
@@ -182,6 +184,11 @@ include('rsuHeader.php');
   }
   #passwordField {
     width: 90%; /* Set the desired width */
+  }
+  input[type="text"]:focus,
+  input[type="password"]:focus {
+    border-color: #3D9B8A;
+    outline: none;
   }
   </style>
 </head>

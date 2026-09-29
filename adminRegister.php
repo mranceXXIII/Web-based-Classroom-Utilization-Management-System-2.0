@@ -97,18 +97,22 @@ include('rsuHeader.php');
 
         form {
             position: relative;
-            background-color: #ffffff;
+            background-color: rgba(255, 255, 255, 0.92);
             padding: 20px;
-            width: 300px;
+            width: 320px;
             margin: 0 auto;
-            border-radius: 5px;
-            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            border-top: 6px solid #3D9B8A;
+            box-shadow: 0 4px 14px rgba(21, 36, 31, 0.18);
             font-size: 120%;
             font-weight: bold;
+            font-family: Poppins, sans-serif;
         }
 
         button {
-            background-color: blue;
+            background-color: #EAF4F1;
+            color: #1F5A50;
+            border: 1px solid #3D9B8A;
             color: #fff;
             border: none;
             padding: 10px 10px;
@@ -117,7 +121,7 @@ include('rsuHeader.php');
             cursor: pointer;
         }
         button :hover{
-            background-color: black;
+            background-color: #D4B13A;
         }
 
         label {
@@ -130,13 +134,13 @@ include('rsuHeader.php');
             width: 100%;
             padding: 8px;
             margin-bottom: 10px;
-            border: 1px solid #ccc;
+            border: 1.5px solid #9FC9BC;
             border-radius: 3px;
             box-sizing: border-box;
         }
 
         input[type="submit"] {
-            background-color: green;
+            background-color: #3D9B8A;
             color: #ffffff;
             padding: 10px 15px;
             border: none;
@@ -146,7 +150,7 @@ include('rsuHeader.php');
         }
 
         input[type="submit"]:hover {
-            background-color: black;
+            background-color: #2E7A6C;
         }
 
 
@@ -166,7 +170,7 @@ include('rsuHeader.php');
 <body>
 
 <form method="POST" action="adminRegister.php">
-            <h2>Admin Registration Form</h2>
+            <h2 style="color: #1F5A50;">Admin Registration Form</h2>
             <label for="name">Name:</label>
             <input type="text" name="name" id="name" required>
 

@@ -96,12 +96,14 @@ include('rsuHeader.php');
 
             .login-container {
     position: relative;
-    background-color: rgba(255, 255, 255, 0.6);
-    border-radius: 4px;
-    margin: 100px auto;
+    background-color: rgba(255, 255, 255, 0.92);
+    border-radius: 8px;
+    border-top: 6px solid #3D9B8A;
+    box-shadow: 0 4px 14px rgba(21, 36, 31, 0.18);
+    margin: 48px auto;
     max-width: 300px;
-    padding: 10px;
-    top: -80px;
+    padding: 14px;
+    font-family: Poppins, sans-serif;
 }
 
 h2 {
@@ -119,12 +121,12 @@ input[type="password"] {
     width: 90%;
     margin-bottom: 10px;
     padding: 10px;
-    border: 2px solid black;
+    border: 1.5px solid #9FC9BC;
     border-radius: 10px;
 }
 
 button {
-    background-color: green;
+    background-color: #3D9B8A;
     border: none;
     color: white;
     cursor: pointer;
@@ -132,7 +134,7 @@ button {
 }
 
 button:hover {
-    background-color: black;
+    background-color: #2E7A6C;
 }
 
 .error {
@@ -142,7 +144,8 @@ button:hover {
 }
 
 .c-button {
-    background-color: blue;
+    background-color: #EDC94F;
+    color: #15241F;
 }
 
 .password-container {
@@ -163,6 +166,12 @@ button:hover {
 .password-toggle:hover {
     color: #333;
 }
+
+input[type="text"]:focus,
+input[type="password"]:focus {
+    border-color: #3D9B8A;
+    outline: none;
+}
 input[type="password"] {
     width: calc(100% - 30px); /* Subtract the space for the toggle icon */
     padding-right: 10px; /* Adjust padding for better appearance */
@@ -179,7 +188,7 @@ input[type="password"] {
         </div>
     </div> -->
     <div class="login-container">
-        <h2>Student Login</h2>
+        <h2 style="color: #1F5A50;">Student Login</h2>
         <form action="studentLogin.php" method="POST">
         <input type="text" name="username" placeholder="Username" required>
 

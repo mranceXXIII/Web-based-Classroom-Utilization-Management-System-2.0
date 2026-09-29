@@ -14,8 +14,10 @@ include('rsuHeader.php');
             
             
             position: relative;
-            background-color: rgb(250,248,245,0.8);
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            background-color: #FFFFFF;
+            border-top: 6px solid #3D9B8A;
+            font-family: Poppins, sans-serif;
+            box-shadow: 0 4px 14px rgba(21, 36, 31, 0.18);
             width: 300px;
             padding: 20px;
             border-radius: 5px;
@@ -29,13 +31,14 @@ include('rsuHeader.php');
 
         input[type="radio"] {
             margin-bottom: 10px;
-            font-weight: bold;
+            font-weight: 600;
+            accent-color: #3D9B8A;
            
           
         }
 
         input[type="submit"] {
-            background-color: green;
+            background-color: #3D9B8A;
             color: white;
             border: none;
             padding: 10px 20px;
@@ -48,7 +51,7 @@ include('rsuHeader.php');
 
         }
         input[type="submit"]:hover {
-            background-color: darkgreen;
+            background-color: #2E7A6C;
         }
     </style>
 </head>
@@ -57,11 +60,11 @@ include('rsuHeader.php');
    
 
     <form method="POST" action="redirect.php">
-        <h2>Select an option</h2>
+        <h2 style="color: #1F5A50; margin-top: 0;">Select an option</h2>
         <div class="radioCont">
         <input type="radio" id="adminRadio" name="option" value="option1" required><label for="adminRadio">Admin</label><br>
         <input type="radio" id="facRadio" name="option" value="option2" required><label for="facRadio">Faculty</label><br>
-        <input type="radio" id="studRadio" name="option" value="option3" required>Student<br><br>
+        <input type="radio" id="studRadio" name="option" value="option3" required><label for="studRadio">Student</label><br><br>
         </div>
         <input type="submit" value="Submit">
     </form>

@@ -133,14 +133,16 @@ include('rsuHeader.php');
             margin-top: 2%;
             
             /* width: 80%; */
-            background-color: rgb(250,248,245,0.4);
+            background-color: #FFFFFF;
+            border-top: 6px solid #3D9B8A;
+            box-shadow: 0 4px 14px rgba(21, 36, 31, 0.18);
         }
 
         select {
             width: 90%;
             padding: 10px;
             box-sizing:content-box;
-            border: 2px solid black;
+            border: 1.5px solid #9FC9BC;
       border-radius: 10px;
             /* border: 1px solid #ccc;
             border-radius: 4px; */
@@ -158,7 +160,9 @@ include('rsuHeader.php');
         }
 
         button {
-            background-color: blue;
+            background-color: #EAF4F1;
+            color: #1F5A50;
+            border: 1px solid #3D9B8A;
             color: #fff;
             border: none;
             padding: 10px 20px;
@@ -171,14 +175,14 @@ include('rsuHeader.php');
         input[type="password"] {
             width: 90%;
             padding: 10px;
-            border: 2px solid black;
+            border: 1.5px solid #9FC9BC;
       border-radius: 10px;
             /* border: 1px solid #ccc;
             border-radius: 4px; */
         }
 
         input[type="submit"] {
-            background-color: #4CAF50;
+            background-color: #3D9B8A;
             color: #fff;
             border: none;
             padding: 10px 20px;
@@ -188,7 +192,7 @@ include('rsuHeader.php');
         }
 
         input[type="submit"]:hover {
-            background-color: #45a049;
+            background-color: #2E7A6C;
         }
 
         .password-toggle {
@@ -212,7 +216,7 @@ include('rsuHeader.php');
     </div>
 
     <form method="POST" action="student_register.php">
-        <h2>Student Registration Form </h2>
+        <h2 style="color: #1F5A50;">Student Registration Form </h2>
         <label for="name">Name:</label>
         <input type="text" id="name" name="name" required><br><br>
 

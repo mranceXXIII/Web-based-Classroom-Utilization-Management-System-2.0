@@ -111,12 +111,13 @@ include('rsuHeader.php');
             position: relative;
             max-width: 300px;
             margin: 0 auto;
-            background-color: #fff;
+            margin-top: 40px;
+            background-color: #FFFFFF;
+            border-top: 6px solid #3D9B8A;
             padding: 20px;
-            border-radius: 5px;
-            background-color: rgb(250,248,245);
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-            top: 60px;
+            border-radius: 8px;
+            box-shadow: 0 4px 14px rgba(21, 36, 31, 0.18);
+            font-family: Poppins, sans-serif;
         }
 
         .form-group {
@@ -132,7 +133,7 @@ include('rsuHeader.php');
         .form-control {
             width: 90%;
             padding: 10px;
-            border: 2px solid black;
+            border: 1.5px solid #9FC9BC;
       border-radius: 10px;
             /* border: 1px solid #ccc;
             border-radius: 4px; */
@@ -145,7 +146,7 @@ include('rsuHeader.php');
         }
 
         input[type="submit"] {
-            background-color: #4CAF50;
+            background-color: #3D9B8A;
             color: white;
             border: none;
             padding: 10px 20px;
@@ -176,6 +177,11 @@ include('rsuHeader.php');
     color: #333;
   }
 
+  .form-control:focus {
+    border-color: #3D9B8A;
+    outline: none;
+  }
+
   .password-input {
     padding-right: 30px; /* Create space for the eye icon */
   }
@@ -193,7 +199,7 @@ include('rsuHeader.php');
     </div> -->
         <div class="container">
             <form action="facultyLogin.php" method="POST">
-                <h2>Faculty Login</h2>
+                <h2 style="color: #1F5A50;">Faculty Login</h2>
                 <div class="form-group">
                     <label for="advisor">Advisor</label>
                     <select name="advisor" id="advisor" class="form-control">
@@ -228,7 +234,7 @@ include('rsuHeader.php');
                 </div>
 
                 <input type="submit" value="Submit">
-                <a href="facultyRegister.php">Register</a>
+                <a href="facultyRegister.php" style="color: #1F5A50; font-weight: 600;">Register</a>
             </form>
         </div>
 

@@ -62,9 +62,12 @@ include('rsuHeader.php');
 <html>
 <head>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
      body {
-      font-family: Arial, sans-serif;
+      font-family: Poppins, sans-serif;
       /* background-color: #f5f5f5;
          padding: 20px;  */
          
@@ -76,13 +79,14 @@ include('rsuHeader.php');
 
     form {
      position: relative;
-      max-width: 300px;
+      max-width: 320px;
       margin: 0 auto;
       margin-top: 2%;
-      background-color: #fff;
+      background-color: #FFFFFF;
       padding: 20px;
-      border-radius: 5px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+      border-radius: 8px;
+      border-top: 6px solid #3D9B8A;
+      box-shadow: 0 4px 14px rgba(21, 36, 31, 0.18);
     }
 
     label {
@@ -91,7 +95,9 @@ include('rsuHeader.php');
     }
 
     button {
-            background-color: blue;
+            background-color: #EAF4F1;
+            color: #1F5A50;
+            border: 1px solid #3D9B8A;
             color: #fff;
             border: none;
             padding: 10px 20px;
@@ -105,7 +111,7 @@ include('rsuHeader.php');
       width: 100%;
       padding: 10px;
       margin-bottom: 20px;
-      border: 2px solid black;
+      border: 1.5px solid #9FC9BC;
       border-radius: 10px;
       /* border: 1px solid #ccc; */
       /* border-radius: 4px; */
@@ -113,7 +119,7 @@ include('rsuHeader.php');
     }
 
     input[type="submit"] {
-      background-color: #4CAF50;
+      background-color: #3D9B8A;
       color: #fff;
       padding: 10px 20px;
       border: none;
@@ -122,7 +128,7 @@ include('rsuHeader.php');
     }
 
     input[type="submit"]:hover {
-      background-color: #45a049;
+      background-color: #2E7A6C;
     }
 
 
@@ -140,7 +146,7 @@ include('rsuHeader.php');
 
 
 <form action="facultyRegister.php" method="POST">
-<h2>Faculty Registration Form</h2>
+<h2 style="color: #1F5A50;">Faculty Registration Form</h2>
 
   <label for="name">Name:</label>
                 <select name="name" id="name" class="form-control">

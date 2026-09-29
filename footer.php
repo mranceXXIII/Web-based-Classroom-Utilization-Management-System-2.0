@@ -17,7 +17,7 @@
             /* Center align the form content */
         }
 footer{
-    background-color: #173370;
+    background-color: #2E7A6C;
         font-size: 1.5vw;
         color: white;
         text-align: center;
@@ -26,6 +26,14 @@ footer{
         margin-bottom: -10%;
         width:100%;
 }
+footer .footer-tag{
+    display: block;
+    color: #EDC94F;
+    font-weight: 600;
+    letter-spacing: 1px;
+    font-size: 0.85em;
+    margin-top: 2px;
+}
 
 </style>
 
@@ -33,6 +41,7 @@ footer{
     <div class="container-fluid">
     <div class="footer-in">
 	<p class="mb-0">Serving with Honor and Excellence!</p>
+	<span class="footer-tag">The Green University</span>
 	</div>
 	</div>
 </footer>

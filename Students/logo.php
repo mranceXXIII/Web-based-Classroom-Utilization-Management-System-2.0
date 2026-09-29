@@ -13,11 +13,11 @@
 }
 
 .green-bg {
-  width:100%;
+	  width:100%;
 	  z-index:9;
 	  position:relative;
 	  padding: 15px 30px;
-	  background-color:  #173370;
+	  background-color: #3D9B8A;
 }
 .green-bg .page-title {
     font-size: 20px;
@@ -63,7 +63,7 @@
 
 
 .titleSys {
-  background-color: #165aec;
+  background-color: #2E7A6C;
   text-align: center;
 }
 
@@ -116,7 +116,7 @@
 <body>
 
 <div class="green-bg text-center">
-				    <h4 class="page-title"><img src="rsuLogo.png" style="width:80px; border-radius:50%;"></h4>
+				    <h4 class="page-title"><img src="rsuLogo.png" style="width:80px; border-radius:50%; background-color:#FFFFFF; padding:2px;"></h4>
 					<ol class="breadcrumb">
 					  <li class="breadcrumb-item"><a>ROMBLON STATE UNIVERSITY CAJIDIOCAN CAMPUS</a></li>	
 					</ol>
