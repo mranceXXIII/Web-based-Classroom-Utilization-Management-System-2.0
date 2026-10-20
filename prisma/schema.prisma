@@ -1,0 +1,91 @@
+// Prisma schema — Classroom Utilization Management System 2.0
+// SQLite rebuild of the 8 legacy MySQL tables (see docs/ARCHITECTURE.md §3).
+// NOTE: SQLite connector does not support Prisma enums — `role` is a validated
+// string (ADMIN | FACULTY | STUDENT), enforced by zod at the API boundary.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             Int             @id @default(autoincrement())
+  username       String          @unique
+  passwordHash   String
+  role           String // "ADMIN" | "FACULTY" | "STUDENT"
+  facultyProfile FacultyProfile?
+  createdAt      DateTime        @default(now())
+}
+
+model FacultyProfile {
+  id            Int        @id @default(autoincrement())
+  name          String     @unique
+  academicRank  String     @default("Not specified")
+  advisory      String     @default("None")
+  lastHeartbeat DateTime?
+  userId        Int?       @unique
+  user          User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+  schedules     Schedule[]
+  blocks        Block[]
+}
+
+model Block {
+  id        Int           @id @default(autoincrement())
+  name      String        @unique
+  yearLevel String
+  advisorId Int?
+  advisor   FacultyProfile? @relation(fields: [advisorId], references: [id], onDelete: SetNull)
+  roster    RosterEntry[]
+  schedules Schedule[]
+}
+
+model Subject {
+  id          Int        @id @default(autoincrement())
+  description String     @unique
+  schedules   Schedule[]
+}
+
+model Room {
+  id        Int        @id @default(autoincrement())
+  name      String     @unique
+  schedules Schedule[]
+}
+
+model Schedule {
+  id        Int             @id @default(autoincrement())
+  semester  String // "1st Sem" | "2nd Sem" | "Vacation"
+  startTime String // "HH:MM" 24h, lexicographically comparable
+  endTime   String // "HH:MM" 24h
+  days      String // comma-separated subset of MON,TUE,WED,THU,FRI,SAT,SUN
+  // Nullable: legacy table_sched row 49 has faculty 'None' and the frozen status
+  // contract (FR-021) requires a NO_FACULTY state. SetNull preserves schedules
+  // when a faculty profile is deleted instead of cascading them away.
+  facultyId Int?
+  faculty   FacultyProfile? @relation(fields: [facultyId], references: [id], onDelete: SetNull)
+  blockId   Int
+  block     Block           @relation(fields: [blockId], references: [id], onDelete: Cascade)
+  subjectId Int
+  subject   Subject         @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  roomId    Int
+  room      Room            @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  createdAt DateTime        @default(now())
+
+  @@index([roomId, semester])
+  @@index([facultyId])
+}
+
+model RosterEntry {
+  // Nullable: all 6 legacy roster rows have block = '' (no block recorded).
+  // Null = "no block recorded" (registration gate then requires name match only,
+  // mirroring legacy student_register.php which checked name only).
+  id      Int    @id @default(autoincrement())
+  name    String
+  blockId Int?
+  block   Block? @relation(fields: [blockId], references: [id], onDelete: Cascade)
+
+  @@unique([name, blockId])
+}

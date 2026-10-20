@@ -1,0 +1,31 @@
+# PROGRESS-LOG-LEGAL — Run 2026-10-14-sqlite-prisma-ui-unification
+
+_Agent: Legal/Compliance · Task: task_0004 (claimed) · All work performed 2026-10-14, completed 11:26._
+
+## Log
+
+1. **Task claimed** (`task_0004`: license audit + legal compliance review + progress log). Read briefing set: `code/package.json`, `docs/PROJECT-CHARTER.md`, `docs/TECH-STACK.md`, `docs/EXISTING-PROJECT-ANALYSIS.md`, `docs/DATA-MODEL.md`.
+2. **License evidence pass (R3).** PowerShell bulk extraction of `name | version | license | path` from every installed `package.json` under `code/node_modules` (top-level + `@scope/*` + recursive nested scan, depth 3). Output was middle-truncated on first pass; re-ran in alphabetical chunks to capture all 85 top-level + 28-scoped-dir manifests. Result: 3 nested duplicates found (`next/node_modules/postcss`, `nypm/node_modules/citty`, `pkg-types/node_modules/confbox`). Full inventory recorded — 61 MIT, 12 Apache-2.0, 4 ISC, 2 BSD-3, 1 BSD-2, 1 0BSD, 1 CC-BY-4.0, 2 MPL-2.0, 1 "Apache-2.0 AND LGPL-3.0-or-later". No GPL/AGPL/SSPL/unknown; every manifest had a license field.
+3. **Direct-dep LICENSE files read** for all 17 direct deps (first-line identifier corroboration). Full read: `node_modules/bcryptjs/LICENSE` (50 lines — permissive: BSD-3-style bcrypt.js notice + MIT isaac.js; package.json field says MIT — nuance recorded), `node_modules/@next/env/package.json` (MIT 15.5.27).
+4. **Version drift recorded** (manifest → installed): next ^15.1.0→15.5.27, react/react-dom ^19.0.0→19.3.0, @prisma/client+prisma ^6.2.1→6.19.3, zod ^3.24.1→3.25.76, jose ^5.9.6→5.10.0, tsx ^4.19.2→4.23.15, typescript ^5.7.2→5.9.3, tailwindcss/@tailwindcss/postcss ^4.0.0→4.3.3, @types/node ^22.10.2→22.20.5, @types/react(-dom) ^19.0.2→19.3.0. Lockfile `code/package-lock.json` confirmed present.
+5. **Legacy-asset verification.** Grep of `code/src` (patterns: bootstrap, Bootstrap, jquery, jQuery, html2pdf, baguette, nice-select, niceSelect, revolution, Revolution, ticker, AOS, aos, font-awesome, fontawesome, cdn., educLogo, rsuLogo, ItLogo) → **0 hits**. No `code/public/` directory. Logo existence check: educLogo.png / rsuLogo.png / ItLogo.png confirmed in legacy tree only (repo root, Admin/, Faculty/, Students/, .kilo worktrees).
+6. **ToS/telemetry verification.** Grep `code/src` for `https?://` → 0 hits (no third-party API calls). Grep `package-lock.json` for sentry|analytics|gtag|segment|mixpanel|posthog|amplitude|hotjar|clarity|matomo → 0 hits. `next.config.ts` empty; no telemetry opt-out set. Next.js telemetry policy fetched from nextjs.org/telemetry (default-on, anonymous, opt-out `NEXT_TELEMETRY_DISABLED=1`). Prisma docs URL 404'd → verified against installed `node_modules/prisma/build/index.js` instead: `CHECKPOINT_DISABLE` guard present (3 occurrences), `PRISMA_HIDE_UPDATE_MESSAGE` (2), `sentry` (0), `binaries.prisma.sh` (1).
+7. **Data-protection evidence pass.** Read `code/prisma/seed.ts` in full (real faculty names + six ported `$2y$` hashes + 2023 heartbeats at lines 39–56; 6 real roster names at 72–79; dev credentials at 20–23; 36 schedules); `code/src/lib/session.ts` (httpOnly/SameSite=Lax/Secure-prod/7d cookie, JWT HS256, logout destruction); `code/src/app/api/import/roster/route.ts` (admin-only, 2 MB cap, name+block only, in-memory); grep `code/src` for fs-writes/persistence → 0 hits; client storage = theme key only. `code/prisma/dev.db` confirmed present (gitignored via `*.db`). NFR-001…006 extracted from `docs/REQUIREMENTS.md`.
+8. **Dependency parentage mapped** for transitive attribution (each installed package's dependencies/optionalDependencies) — e.g. effect/fast-check/pure-rand arrive via `@prisma/config`, not zod; sharp + `@img/sharp-win32-x64` are optional under next.
+9. **Deliverable written:** `docs/LICENSE-AUDIT.md` — method (§0), verdict summary (§1), 17 direct-dep verdicts with file evidence (§2), flags: sharp-binary LGPL dual (§3.1), caniuse-lite CC-BY-4.0 (§3.2), lightningcss MPL-2.0 (§3.3) (§3), parent-attributed transitive table (§4), complete 85+3 inventory (§5), notices action (§6), evidence appendix (§7).
+10. **Deliverable written:** `docs/LEGAL-COMPLIANCE-REVIEW.md` — license summary (§1); DPA analysis: data inventory, lawful basis §12(f)/(b), minimization (2023 heartbeats flagged), retention, §20/NFR security mapping, roster CSV import path, rights/governance, GDPR/CCPA deltas (§2); IP/attribution incl. logos legacy-only (§3); ToS exposure incl. dev-time telemetry with disable instructions (§4); verdict **CLEAR-WITH-CONDITIONS** with C1–C8 (§5); evidence appendix (§6).
+11. **Deliverable written:** `PROGRESS-LOG-LEGAL.md` (this file, run root).
+12. **Verification pass:** re-read all three files; no leftover `<!--…-->` markers; no code files modified (workstream was read-only on `code/`).
+13. **Verification catch + fix:** outline check found §2.2–2.4 (lawful basis / data minimization / retention) missing from LEGAL-COMPLIANCE-REVIEW — dropped during the chunk-size split in step 10. Restored in place (§2.2 Lawful basis §12(f)/(b); §2.3 minimization table; §2.4 retention incl. 2023-heartbeat flag). Re-verified outline: §2.1→§2.8 contiguous; 0 markers; final REVIEW length 136 lines.
+
+## Outcome
+
+- **Verdict: CLEAR-WITH-CONDITIONS** (C1 notices file · C2 telemetry env vars · C3 DPO sign-off · C4 production seed minimization + dev.db handling · C5 HTTPS · C6 credential hygiene/legacy-hash reset · C7 import audit logging · C8 re-audit on dependency change).
+- Blocking findings: none. Copyleft: only optional, app-unused `@img/sharp-win32-x64` (dual Apache-2.0/LGPL-3.0). Attribution: caniuse-lite (CC-BY-4.0).
+- Final legal sign-off delegated to RSU DPO (RA 10173), as stated in the review header.
+
+## Integrity statement
+
+- R3: every license claim cites an installed file path (`code/node_modules/<pkg>/package.json` or `LICENSE`); no memory/registry-based claims; Prisma behavior claims verified against the installed CLI bundle after docs 404.
+- R6/R7: all steps, evidence paths, and findings logged above.
+- No files under `code/` were modified; deliverables only in `docs/` + this log.

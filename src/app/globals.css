@@ -1,0 +1,109 @@
+@import "tailwindcss";
+
+/* Class-based dark mode (toggled on <html> by theme-toggle; pre-hydration script prevents flash) */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ---------------------------------------------------------------------------
+   Design tokens — the single source of truth for the whole UI.
+   Frontend agent: refine palette values ONLY here, never inline raw colors.
+--------------------------------------------------------------------------- */
+:root {
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --surface-2: #eef0f3;
+  --text: #17181c;
+  --muted: #5c6270;
+  --border: #e2e5ea;
+  --accent: #2563eb;
+  --accent-contrast: #ffffff;
+  --success: #16a34a;
+  --danger: #dc2626;
+  --danger-contrast: #ffffff;
+  --info: #0284c7;
+  --ring: #93c5fd;
+  --scrim: rgba(0, 0, 0, 0.5);
+}
+
+.dark {
+  --bg: #0e1014;
+  --surface: #171a21;
+  --surface-2: #1f232d;
+  --text: #e8eaee;
+  --muted: #9aa1ad;
+  --border: #262b36;
+  --accent: #3b82f6;
+  --accent-contrast: #ffffff;
+  --success: #22c55e;
+  --danger: #ef4444;
+  --danger-contrast: #ffffff;
+  --info: #38bdf8;
+  --ring: #1d4ed8;
+  --scrim: rgba(0, 0, 0, 0.7);
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-contrast: var(--accent-contrast);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --color-danger-contrast: var(--danger-contrast);
+  --color-info: var(--info);
+  --color-ring: var(--ring);
+  --color-scrim: var(--scrim);
+}
+
+html {
+  color-scheme: light;
+}
+html.dark {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------------------------------------------------------------------------
+   Base — minimal Swiss/Inter-first stack (typography.md "Minimal Swiss" for
+   dashboards/admin panels). layout.tsx is backend-owned, so next/font cannot
+   be added from here (logged as D1); this stack uses Inter when installed on
+   the host, falling back to the system UI font — zero external requests.
+--------------------------------------------------------------------------- */
+body {
+  font-family: Inter, "SF Pro Text", "Segoe UI Variable", "Segoe UI",
+    system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  font-feature-settings: "cv11", "ss01";
+  transition: background-color 200ms ease-out, color 200ms ease-out;
+}
+
+/* Subtle single pulse for the live heartbeat dot (ux-guidelines #12: looping
+ * animation reserved for live-data indicators only). */
+@keyframes heartbeat-pulse {
+  0% { transform: scale(1); opacity: 0.75; }
+  70% { transform: scale(2.2); opacity: 0; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+.heartbeat-pulse {
+  animation: heartbeat-pulse 2s ease-out infinite;
+}
+
+/* Respect reduced-motion preferences everywhere (ux-guidelines #9/#99). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+

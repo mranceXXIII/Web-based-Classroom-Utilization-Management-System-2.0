@@ -1,0 +1,30 @@
+# Node / Next.js
+node_modules/
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+
+# Environment & secrets
+.env
+.env.local
+.env.production
+
+# SQLite database files
+*.db
+*.db-journal
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+
+# Dev-team workspace: commit only durable docs (runs/*/docs, PROGRESS-LOG-*.md, skill-patches)
+workspace/runs/**/code/
+workspace/runs/**/qa-tmp/
+workspace/runs/**/media/
+workspace/runs/**/*-cookie.txt
+workspace/runs/**/build*/
+workspace/runs/**/dev*.log
+
