@@ -1,4 +1,8 @@
-// /api/crud/schedules — GET / POST / PUT (body.id) / DELETE ?id= (admin-only).
+// /api/crud/schedules — GET / POST / PUT (body.id) / DELETE ?id=.
+// Mutations are admin-only. GET accepts ANY authenticated role (POST-SHIP FIX 3,
+// 2026-10-20): the faculty and student dashboards (FR-020/FR-023) read schedules through
+// the data layer with the user's own session; a faculty/student 403 made those dashboards
+// fall back to mock sample data.
 // days wire format: DayCode[]; stored comma-joined (INTERFACE-TYPES.md). facultyId 0/null = no faculty.
 import { db } from "@/lib/db";
 import { guard, parseJson, jsonOk, jsonError, internalError, checkOrigin } from "@/lib/api";
@@ -20,7 +24,7 @@ async function assertFks(data: {
 }
 
 export async function GET() {
-  const g = await guard("ADMIN");
+  const g = await guard("ADMIN", "FACULTY", "STUDENT");
   if ("err" in g) return g.err;
   try {
     const schedules = await db.schedule.findMany({

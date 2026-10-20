@@ -28,14 +28,21 @@ export interface Degradable<T> { data: T; degraded: boolean; }
 export interface ScheduleRowVM extends ScheduleDTO { badge: StatusBadge; }
 export interface UtilizationTable extends RoomWeeklyTable { rows: ScheduleRowVM[]; }
 
-/** Server-side fetch of an internal API path with short timeout + graceful failure. */
+/** Server-side fetch of an internal API path with short timeout + graceful failure.
+ *  POST-SHIP FIX 2 (2026-10-20): forwards the incoming request's `cookie` header so the
+ *  call is authenticated as the logged-in user. Without it, every CRUD GET returned 401
+ *  (they are role-guarded) and dashboards silently rendered mock sample data. Read
+ *  authorization per endpoint: schedules GET accepts any authenticated role; faculty and
+ *  blocks GET are public reads (registration + dashboards); the rest stay admin-only. */
 async function tryApi<T>(path: string): Promise<T | null> {
   try {
     const h = await headers();
     const host = h.get("host") ?? "localhost:3000";
     const proto = h.get("x-forwarded-proto") ?? "http";
+    const cookie = h.get("cookie") ?? undefined;
     const res = await fetch(`${proto}://${host}${path}`, {
       cache: "no-store",
+      headers: cookie ? { cookie } : undefined,
       signal: AbortSignal.timeout(2500),
     });
     if (!res.ok) return null;

@@ -1,12 +1,13 @@
-// /api/crud/blocks — GET / POST / PUT (body.id) / DELETE ?id= (admin-only).
+// /api/crud/blocks — GET / POST / PUT (body.id) / DELETE ?id=.
+// POST/PUT/DELETE are admin-only. GET is a PUBLIC read (POST-SHIP FIX 3, 2026-10-20):
+// student registration (FR-004) fetches the block list pre-auth to populate its block
+// dropdown; without a public read it fell back to mock sample blocks.
 import { db } from "@/lib/db";
 import { guard, parseJson, jsonOk, jsonError, internalError, findByNameCi, checkOrigin } from "@/lib/api";
 import { toBlockDTO } from "@/lib/serialize";
 import { blockSchema, idBodySchema, idSchema } from "@/lib/schemas";
 
 export async function GET() {
-  const g = await guard("ADMIN");
-  if ("err" in g) return g.err;
   try {
     const blocks = await db.block.findMany({ include: { advisor: true }, orderBy: { id: "asc" } });
     return jsonOk(blocks.map(toBlockDTO));

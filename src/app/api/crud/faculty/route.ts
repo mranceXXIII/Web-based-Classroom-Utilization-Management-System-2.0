@@ -1,14 +1,16 @@
 // /api/crud/faculty — GET list / POST create / PUT update (body.id) / DELETE ?id=
-// Admin-only (PLAN.md Interface Contract). Deleting a faculty profile also removes its
-// linked User account; schedules survive with facultyId=null ("No Faculty"), per schema SetNull.
+// Mutations are admin-only. GET is a PUBLIC read (POST-SHIP FIX 3, 2026-10-20): faculty
+// registration (FR-005/FR-006) populates its name dropdown pre-auth, and the utilization
+// data layer (loadUtilization) reads it on every dashboard. Read-only directory data
+// (name/rank/advisory/heartbeat presence) — the legacy system published the same list
+// publicly. Deleting a faculty profile also removes its linked User account; schedules
+// survive with facultyId=null ("No Faculty"), per schema SetNull.
 import { db } from "@/lib/db";
 import { guard, parseJson, jsonOk, jsonError, internalError, findByNameCi, checkOrigin } from "@/lib/api";
 import { toFacultyDTO } from "@/lib/serialize";
 import { facultySchema, idBodySchema, idSchema } from "@/lib/schemas";
 
 export async function GET() {
-  const g = await guard("ADMIN");
-  if ("err" in g) return g.err;
   try {
     const profiles = await db.facultyProfile.findMany({ include: { user: true }, orderBy: { id: "asc" } });
     return jsonOk(profiles.map(toFacultyDTO));
