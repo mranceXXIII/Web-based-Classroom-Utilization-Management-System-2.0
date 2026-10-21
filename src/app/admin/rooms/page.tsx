@@ -3,7 +3,7 @@ import { loadRooms } from "@/components/data";
 
 export const dynamic = "force-dynamic";
 
-/* FR-012 — rooms CRUD. */
+/* FR-012 — rooms CRUD. Serializable props only (see entity-manager.tsx). */
 export default async function AdminRoomsPage() {
   const { data, degraded } = await loadRooms();
   return (
@@ -13,13 +13,7 @@ export default async function AdminRoomsPage() {
       description="Rooms and venues tracked by the system."
       initialRows={data}
       initialDegraded={degraded}
-      columns={[
-        { key: "name", header: "Room", render: (r) => <span className="font-medium">{r.name}</span> },
-      ]}
-      fields={[
-        { key: "name", label: "Room name", type: "text", required: true, placeholder: "e.g., 201" },
-      ]}
-      toForm={(r) => ({ name: r.name })}
     />
   );
 }
+

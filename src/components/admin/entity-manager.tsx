@@ -7,15 +7,37 @@ import { Field, Input, Select } from "@/components/ui/field";
 import { Dialog, ConfirmDialog } from "@/components/ui/dialog";
 import { Notice, EmptyState, SkeletonRows } from "@/components/notice";
 import { TableShell, THead, TBody, TR, TH, TD } from "@/components/ui/table";
-import { DAY_CODES, DAY_LABELS } from "@/components/mocks";
-import type { DayCode } from "@/lib/types";
+import { Badge, DayDots } from "@/components/ui/badge";
+import { DAY_CODES, DAY_LABELS, SEMESTERS } from "@/components/mocks";
+import { ExportSchedulesButton } from "@/components/admin/export-button";
+import type { BlockDTO, DayCode, FacultyDTO, RoomDTO, ScheduleDTO, SubjectDTO } from "@/lib/types";
 import { ApiError, apiFetch } from "@/components/api-client";
 
 /* EntityManager — one uniform CRUD surface for faculty, blocks, subjects,
  * rooms, schedules (FR-012/013): list + create/edit dialog + delete confirm,
  * all through the frozen /api/crud/{entity} contract (GET/POST/PUT/DELETE).
  * Initial rows come from the server data layer (mock fallback, `degraded`
- * flag shown truthfully); Refresh pulls live data; mutations hit the real API. */
+ * flag shown truthfully); Refresh pulls live data; mutations hit the real API.
+ *
+ * RSC NOTE (post-ship fix): the per-entity column/field/toForm configuration
+ * lives IN THIS CLIENT COMPONENT, keyed by `entity` — server pages pass only
+ * serializable props (entity, title, initial rows). Functions (render, toForm)
+ * cannot cross the server→client boundary; defining them here is what makes
+ * the entity sections render at all. Select options for schedules are passed
+ * as plain {value,label} arrays via `selectOptions`. */
+
+export type EntityName = "faculty" | "blocks" | "subjects" | "rooms" | "schedules";
+
+type Opt = { value: string; label: string };
+
+/** Serializable option lists for select fields (schedules page). Fields are
+ * optional — each entity consumes only the lists it needs. */
+export interface SelectOptions {
+  blocks?: Opt[];
+  subjects?: Opt[];
+  rooms?: Opt[];
+  faculty?: Opt[];
+}
 
 export interface FieldDef {
   key: string;
@@ -23,44 +45,171 @@ export interface FieldDef {
   type: "text" | "select" | "time" | "days";
   required?: boolean;
   placeholder?: string;
-  options?: { value: string; label: string }[];
+  options?: Opt[];
 }
 
-export interface ColumnDef<T> {
-  key: string;
-  header: string;
-  render?: (row: T) => React.ReactNode;
-}
-
-export interface EntityManagerProps<T extends { id: number }> {
-  entity: string;
-  title: string;
-  description?: string;
-  columns: ColumnDef<T>[];
-  fields: FieldDef[];
-  /** row → initial form values (all string values; days joined with commas) */
-  toForm: (row: T) => Record<string, string>;
-  /** keys that must be sent as numbers in the payload */
-  numericKeys?: string[];
-  createDefaults?: Record<string, string>;
-  initialRows: T[];
-  initialDegraded: boolean;
-  headerExtra?: React.ReactNode;
-}
-
+type EntityRow = FacultyDTO | BlockDTO | SubjectDTO | RoomDTO | ScheduleDTO;
 type FormValues = Record<string, string>;
 
-export function EntityManager<T extends { id: number }>({
-  entity, title, description, columns, fields, toForm, numericKeys = [],
-  createDefaults = {}, initialRows, initialDegraded, headerExtra,
-}: EntityManagerProps<T>) {
-  const [rows, setRows] = useState<T[]>(initialRows);
+interface ColumnDef {
+  key: string;
+  header: string;
+  render?: (row: EntityRow) => React.ReactNode;
+}
+
+interface EntityConfig {
+  columns: ColumnDef[];
+  fields: FieldDef[];
+  toForm: (row: EntityRow) => FormValues;
+  numericKeys: string[];
+  createDefaults: Record<string, string>;
+}
+
+function buildConfig(entity: EntityName, opts: SelectOptions | undefined): EntityConfig {
+  switch (entity) {
+    case "faculty":
+      return {
+        columns: [
+          { key: "name", header: "Name", render: (r) => <span className="font-medium">{(r as FacultyDTO).name}</span> },
+          { key: "academicRank", header: "Academic Rank" },
+          { key: "advisory", header: "Advisory" },
+          {
+            key: "hasAccount",
+            header: "Account",
+            render: (r) => {
+              const f = r as FacultyDTO;
+              return <Badge variant={f.hasAccount ? "success" : "muted"}>{f.hasAccount ? "Registered" : "No account"}</Badge>;
+            },
+          },
+          {
+            key: "lastHeartbeat",
+            header: "Last heartbeat",
+            render: (r) => {
+              const hb = (r as FacultyDTO).lastHeartbeat;
+              return hb ? new Date(hb).toLocaleTimeString("en-PH", { hour: "2-digit", minute: "2-digit" }) : "—";
+            },
+          },
+        ],
+        fields: [
+          { key: "name", label: "Name", type: "text", required: true },
+          { key: "academicRank", label: "Academic rank", type: "text", required: true },
+          { key: "advisory", label: "Advisory", type: "text", placeholder: "Block name or —" },
+        ],
+        toForm: (r) => {
+          const f = r as FacultyDTO;
+          return { name: f.name, academicRank: f.academicRank, advisory: f.advisory };
+        },
+        numericKeys: [],
+        createDefaults: {},
+      };
+
+    case "blocks":
+      return {
+        columns: [
+          { key: "name", header: "Block", render: (r) => <span className="font-medium">{(r as BlockDTO).name}</span> },
+          { key: "yearLevel", header: "Year level" },
+          { key: "advisorName", header: "Advisor", render: (r) => (r as BlockDTO).advisorName ?? "—" },
+        ],
+        fields: [
+          { key: "name", label: "Block name", type: "text", required: true, placeholder: "e.g., BEEd 3-A" },
+          { key: "yearLevel", label: "Year level", type: "text", required: true, placeholder: "1–6" },
+          { key: "advisorId", label: "Advisor", type: "select", required: true, options: opts?.faculty ?? [] },
+        ],
+        toForm: (r) => {
+          const b = r as BlockDTO;
+          return { name: b.name, yearLevel: b.yearLevel, advisorId: b.advisorId === null ? "" : String(b.advisorId) };
+        },
+        numericKeys: ["advisorId"],
+        createDefaults: {},
+      };
+
+    case "subjects":
+      return {
+        columns: [
+          { key: "description", header: "Description", render: (r) => <span className="font-medium">{(r as SubjectDTO).description}</span> },
+        ],
+        fields: [
+          { key: "description", label: "Subject description", type: "text", required: true, placeholder: "e.g., Assessment in Learning 1" },
+        ],
+        toForm: (r) => ({ description: (r as SubjectDTO).description }),
+        numericKeys: [],
+        createDefaults: {},
+      };
+
+    case "rooms":
+      return {
+        columns: [
+          { key: "name", header: "Room", render: (r) => <span className="font-medium">{(r as RoomDTO).name}</span> },
+        ],
+        fields: [
+          { key: "name", label: "Room name", type: "text", required: true, placeholder: "e.g., 201" },
+        ],
+        toForm: (r) => ({ name: (r as RoomDTO).name }),
+        numericKeys: [],
+        createDefaults: {},
+      };
+
+    case "schedules":
+      return {
+        columns: [
+          { key: "subjectDescription", header: "Subject", render: (r) => <span className="font-medium">{(r as ScheduleDTO).subjectDescription}</span> },
+          { key: "blockName", header: "Block", render: (r) => <span className="text-muted">{(r as ScheduleDTO).blockName}</span> },
+          { key: "facultyName", header: "Faculty", render: (r) => <span className="text-muted">{(r as ScheduleDTO).facultyName}</span> },
+          { key: "roomName", header: "Room", render: (r) => <span className="tabular-nums">{(r as ScheduleDTO).roomName}</span> },
+          { key: "time", header: "Time", render: (r) => { const s = r as ScheduleDTO; return <span className="tabular-nums text-muted">{s.startTime}–{s.endTime}</span>; } },
+          { key: "days", header: "Days", render: (r) => <DayDots days={(r as ScheduleDTO).days as DayCode[]} /> },
+          { key: "semester", header: "Semester", render: (r) => <span className="text-muted">{(r as ScheduleDTO).semester}</span> },
+        ],
+        fields: [
+          { key: "blockId", label: "Block", type: "select", required: true, options: opts?.blocks ?? [] },
+          { key: "subjectId", label: "Subject", type: "select", required: true, options: opts?.subjects ?? [] },
+          { key: "roomId", label: "Room", type: "select", required: true, options: opts?.rooms ?? [] },
+          { key: "facultyId", label: "Faculty", type: "select", options: [{ value: "0", label: "None (no faculty)" }, ...(opts?.faculty ?? [])] },
+          { key: "semester", label: "Semester", type: "select", required: true, options: SEMESTERS.map((s) => ({ value: s, label: s })) },
+          { key: "startTime", label: "Start time", type: "time", required: true },
+          { key: "endTime", label: "End time", type: "time", required: true },
+          { key: "days", label: "Days", type: "days", required: true },
+        ],
+        toForm: (r) => {
+          const s = r as ScheduleDTO;
+          return {
+            blockId: String(s.blockId),
+            subjectId: String(s.subjectId),
+            roomId: String(s.roomId),
+            facultyId: String(s.facultyId), // 0 = "None" sentinel (API-CONTRACT.md)
+            semester: s.semester,
+            startTime: s.startTime.slice(0, 5),
+            endTime: s.endTime.slice(0, 5),
+            days: s.days.join(","),
+          };
+        },
+        numericKeys: ["blockId", "subjectId", "roomId", "facultyId"],
+        createDefaults: { semester: "1st Sem" },
+      };
+  }
+}
+
+export interface EntityManagerProps {
+  entity: EntityName;
+  title: string;
+  description?: string;
+  initialRows: EntityRow[];
+  initialDegraded: boolean;
+  /** schedules only: option lists for the block/subject/room/faculty selects */
+  selectOptions?: SelectOptions;
+}
+
+export function EntityManager({
+  entity, title, description, initialRows, initialDegraded, selectOptions,
+}: EntityManagerProps) {
+  const cfg = buildConfig(entity, selectOptions);
+  const [rows, setRows] = useState<EntityRow[]>(initialRows);
   const [degraded, setDegraded] = useState(initialDegraded);
   const [listError, setListError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [editing, setEditing] = useState<T | null>(null);
+  const [editing, setEditing] = useState<EntityRow | null>(null);
   const [creating, setCreating] = useState(false);
-  const [deleting, setDeleting] = useState<T | null>(null);
+  const [deleting, setDeleting] = useState<EntityRow | null>(null);
   const [values, setValues] = useState<FormValues>({});
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
@@ -77,7 +226,7 @@ export function EntityManager<T extends { id: number }>({
     setLoading(true);
     setListError(null);
     try {
-      const data = await apiFetch<T[]>(`/api/crud/${entity}`);
+      const data = await apiFetch<EntityRow[]>(`/api/crud/${entity}`);
       if (mountedRef.current) { setRows(data); setDegraded(false); }
     } catch (err) {
       if (mountedRef.current) {
@@ -89,14 +238,14 @@ export function EntityManager<T extends { id: number }>({
   }, [entity]);
 
   function openCreate() {
-    setValues({ ...createDefaults });
+    setValues({ ...cfg.createDefaults });
     setFieldErrors({});
     setFormError(null);
     setCreating(true);
   }
 
-  function openEdit(row: T) {
-    setValues({ ...toForm(row) });
+  function openEdit(row: EntityRow) {
+    setValues({ ...cfg.toForm(row) });
     setFieldErrors({});
     setFormError(null);
     setEditing(row);
@@ -104,11 +253,11 @@ export function EntityManager<T extends { id: number }>({
 
   function buildPayload(): Record<string, unknown> {
     const out: Record<string, unknown> = {};
-    for (const f of fields) {
+    for (const f of cfg.fields) {
       const raw = values[f.key] ?? "";
       if (f.type === "days") {
         out[f.key] = raw.split(",").filter(Boolean); // wire format: DayCode[]
-      } else if (numericKeys.includes(f.key)) {
+      } else if (cfg.numericKeys.includes(f.key)) {
         out[f.key] = raw === "" ? "" : Number(raw);
       } else {
         out[f.key] = raw;
@@ -169,7 +318,7 @@ export function EntityManager<T extends { id: number }>({
           {description && <p className="mt-0.5 text-sm text-muted">{description}</p>}
         </div>
         <div className="flex items-center gap-2">
-          {headerExtra}
+          {entity === "schedules" && <ExportSchedulesButton />}
           <Button variant="ghost" size="md" onClick={reload} aria-label="Refresh list" className="px-2.5">
             <RefreshCw aria-hidden="true" className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
             <span className="sr-only">Refresh</span>
@@ -209,15 +358,15 @@ export function EntityManager<T extends { id: number }>({
           <TableShell>
             <THead>
               <TR>
-                {columns.map((c) => <TH key={c.key}>{c.header}</TH>)}
+                {cfg.columns.map((c) => <TH key={c.key}>{c.header}</TH>)}
                 <TH className="text-right">Actions</TH>
               </TR>
             </THead>
             <TBody>
               {rows.map((row) => (
                 <TR key={row.id}>
-                  {columns.map((c) => (
-                    <TD key={c.key}>{c.render ? c.render(row) : String((row as Record<string, unknown>)[c.key] ?? "—")}</TD>
+                  {cfg.columns.map((c) => (
+                    <TD key={c.key}>{c.render ? c.render(row) : String((row as unknown as Record<string, unknown>)[c.key] ?? "—")}</TD>
                   ))}
                   <TD className="text-right">
                     <span className="inline-flex justify-end gap-1">
@@ -243,7 +392,7 @@ export function EntityManager<T extends { id: number }>({
       >
         <form onSubmit={save} className="flex flex-col gap-4" noValidate>
           {formError && <Notice variant="error">{formError}</Notice>}
-          {fields.map((f) => (
+          {cfg.fields.map((f) => (
             <Field key={f.key} label={f.label} error={fieldErrors[f.key]} required={f.required}>
               {({ id, describedBy, invalid }) =>
                 f.type === "select" ? (
