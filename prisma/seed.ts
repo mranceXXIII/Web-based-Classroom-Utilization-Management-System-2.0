@@ -184,6 +184,18 @@ const schedulesSeed: SchedSeed[] = [
 ];
 
 async function main() {
+  // Fresh-run guard: `npm run setup` runs the seed automatically, so skip when
+  // the database already has users instead of wiping live data (the deleteMany
+  // reseed below is only for explicit `npm run db:seed` runs on a fresh DB).
+  const existingUsers = await db.user.count();
+  if (existingUsers > 0) {
+    console.log(
+      `Database already seeded (${existingUsers} users found) — skipping seed. ` +
+        "Run `npm run db:seed` explicitly to reseed from the legacy data."
+    );
+    return;
+  }
+
   console.log("Seeding legacy data from db/educ_room_utilization.sql ...");
 
   await db.$transaction(async (tx) => {
