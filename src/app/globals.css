@@ -8,20 +8,25 @@
    Frontend agent: refine palette values ONLY here, never inline raw colors.
 --------------------------------------------------------------------------- */
 :root {
-  --bg: #f6f7f9;
+  --bg: #eaf4f1; /* RSU body background (rsuHeader.php) */
   --surface: #ffffff;
   --surface-2: #eef0f3;
   --text: #17181c;
   --muted: #5c6270;
   --border: #e2e5ea;
-  --accent: #2563eb;
+  --accent: #2e7a6c; /* RSU footer green (footer.php) — AA on white; the vivid banner stays #3D9B8A */
   --accent-contrast: #ffffff;
   --success: #16a34a;
   --danger: #dc2626;
   --danger-contrast: #ffffff;
   --info: #0284c7;
-  --ring: #93c5fd;
+  --ring: #9ccfc4;
   --scrim: rgba(0, 0, 0, 0.5);
+  /* RSU brand — extracted verbatim from rsuHeader.php / footer.php / index.php */
+  --rsu-green: #3d9b8a;
+  --rsu-green-deep: #2e7a6c;
+  --rsu-deep: #1f5a50;
+  --rsu-gold: #edc94f;
 }
 
 .dark {
@@ -31,14 +36,19 @@
   --text: #e8eaee;
   --muted: #9aa1ad;
   --border: #262b36;
-  --accent: #3b82f6;
+  --accent: #4fb39d;
   --accent-contrast: #ffffff;
   --success: #22c55e;
   --danger: #ef4444;
   --danger-contrast: #ffffff;
   --info: #38bdf8;
-  --ring: #1d4ed8;
+  --ring: #2e7a6c;
   --scrim: rgba(0, 0, 0, 0.7);
+  /* Brand constants — banner and footer keep their PHP colors in BOTH themes */
+  --rsu-green: #3d9b8a;
+  --rsu-green-deep: #2e7a6c;
+  --rsu-deep: #1f5a50;
+  --rsu-gold: #edc94f;
 }
 
 @theme inline {
@@ -56,6 +66,9 @@
   --color-info: var(--info);
   --color-ring: var(--ring);
   --color-scrim: var(--scrim);
+  --color-rsu: var(--rsu-green);
+  --color-rsu-deep: var(--rsu-green-deep);
+  --color-rsu-gold: var(--rsu-gold);
 }
 
 html {
@@ -78,10 +91,32 @@ body {
    the host, falling back to the system UI font — zero external requests.
 --------------------------------------------------------------------------- */
 body {
-  font-family: Inter, "SF Pro Text", "Segoe UI Variable", "Segoe UI",
-    system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  font-family: var(--font-poppins), Poppins, Inter, "SF Pro Text",
+    "Segoe UI Variable", "Segoe UI", system-ui, -apple-system, "Helvetica Neue",
+    Arial, sans-serif;
   font-feature-settings: "cv11", "ss01";
   transition: background-color 200ms ease-out, color 200ms ease-out;
+}
+
+/* ---------------------------------------------------------------------------
+   RSU chrome — ported from the legacy PHP chrome (rsuHeader.php, footer.php).
+   The educLogo watermark: fixed full-viewport, centered, contain, opacity 0.1,
+   behind all content — exactly the body::before rule of rsuHeader.php. In dark
+   mode it runs dimmer so it stays a whisper, not a glow.
+--------------------------------------------------------------------------- */
+.rsu-watermark {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: url("/educLogo.png");
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+  opacity: 0.1;
+}
+.dark .rsu-watermark {
+  opacity: 0.06;
 }
 
 /* Subtle single pulse for the live heartbeat dot (ux-guidelines #12: looping

@@ -12,7 +12,7 @@ export default async function LoginPage({ params }: { params: Promise<{ role: st
   if (!ROLES.includes(role)) notFound();
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex flex-1 flex-col">
       <AppHeader />
       <main className="mx-auto flex w-full max-w-6xl flex-1 items-center justify-center px-4 py-16 sm:px-6">
         <AuthForm role={role} mode="login" />

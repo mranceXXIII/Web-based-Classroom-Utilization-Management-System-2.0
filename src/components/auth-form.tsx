@@ -79,7 +79,7 @@ export function AuthForm({ role, mode }: { role: Role; mode: AuthMode }) {
   const needsExistingName = mode === "register" && role !== "STUDENT";
 
   return (
-    <div className="w-full max-w-sm">
+    <div className="w-full max-w-sm rounded-lg border border-border border-t-4 border-t-rsu bg-surface p-6 shadow-[0_4px_14px_rgba(21,36,31,0.18)]">
       <h1 className="text-xl font-semibold tracking-tight text-text">
         {mode === "login" ? `${roleLabel[role]} sign in` : `Register as ${roleLabel[role]}`}
       </h1>

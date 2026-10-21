@@ -1,5 +1,12 @@
 import type { Metadata } from "next";
+import { RsuFooter } from "@/components/rsu-footer";
 import "./globals.css";
+
+/* Typeface: Poppins (the legacy PHP system's font, rsuHeader.php). NOTE: this
+   host cannot reach fonts.googleapis.com, so next/font/google hangs the build —
+   the font is consumed through the CSS stack in globals.css instead: machines
+   with Poppins installed get it locally, everything else falls back to the
+   system UI font. Zero network dependency, CSP untouched. */
 
 export const metadata: Metadata = {
   title: "Classroom Utilization Management System",
@@ -18,7 +25,12 @@ export default function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
-      <body className="min-h-screen bg-bg text-text">{children}</body>
+      <body className="flex min-h-screen flex-col bg-bg text-text">
+        {/* educLogo watermark — fixed, behind all content (rsuHeader.php body::before) */}
+        <div aria-hidden="true" className="rsu-watermark" />
+        <div className="flex flex-1 flex-col">{children}</div>
+        <RsuFooter />
+      </body>
     </html>
   );
 }
