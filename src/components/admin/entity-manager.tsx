@@ -7,6 +7,7 @@ import { Field, Input, Select } from "@/components/ui/field";
 import { Dialog, ConfirmDialog } from "@/components/ui/dialog";
 import { Notice, EmptyState, SkeletonRows } from "@/components/notice";
 import { TableShell, THead, TBody, TR, TH, TD } from "@/components/ui/table";
+import { ViewToggle, type ViewMode } from "@/components/ui/view-toggle";
 import { Badge, DayDots } from "@/components/ui/badge";
 import { DAY_CODES, DAY_LABELS, SEMESTERS } from "@/components/mocks";
 import { ExportSchedulesButton } from "@/components/admin/export-button";
@@ -63,6 +64,8 @@ interface EntityConfig {
   toForm: (row: EntityRow) => FormValues;
   numericKeys: string[];
   createDefaults: Record<string, string>;
+  /** Grid-view card body (List ⇄ Grid toggle). */
+  card: (row: EntityRow) => React.ReactNode;
 }
 
 function buildConfig(entity: EntityName, opts: SelectOptions | undefined): EntityConfig {
@@ -99,6 +102,25 @@ function buildConfig(entity: EntityName, opts: SelectOptions | undefined): Entit
           const f = r as FacultyDTO;
           return { name: f.name, academicRank: f.academicRank, advisory: f.advisory };
         },
+        card: (r) => {
+          const f = r as FacultyDTO;
+          return (
+            <div className="flex flex-col gap-1.5">
+              <span className="flex items-center justify-between gap-2">
+                <span className="text-base font-semibold text-text">{f.name}</span>
+                <Badge variant={f.hasAccount ? "success" : "muted"}>{f.hasAccount ? "Registered" : "No account"}</Badge>
+              </span>
+              <span className="text-sm text-muted">Academic rank: {f.academicRank}</span>
+              <span className="text-sm text-muted">Advisory: {f.advisory}</span>
+              <span className="text-sm text-muted">
+                Last heartbeat:{" "}
+                {f.lastHeartbeat
+                  ? new Date(f.lastHeartbeat).toLocaleTimeString("en-PH", { hour: "2-digit", minute: "2-digit" })
+                  : "—"}
+              </span>
+            </div>
+          );
+        },
         numericKeys: [],
         createDefaults: {},
       };
@@ -119,6 +141,17 @@ function buildConfig(entity: EntityName, opts: SelectOptions | undefined): Entit
           const b = r as BlockDTO;
           return { name: b.name, yearLevel: b.yearLevel, advisorId: b.advisorId === null ? "" : String(b.advisorId) };
         },
+        card: (r) => {
+          const b = r as BlockDTO;
+          return (
+            <div className="flex flex-col gap-1.5">
+              <span className="text-base font-semibold text-text">{b.name}</span>
+              <span className="text-sm text-muted">Year level: {b.yearLevel}</span>
+              <span className="text-sm text-muted">Advisor: {b.advisorName ?? "—"}</span>
+              <span className="text-sm text-muted">Department: {b.departmentName ?? "—"}</span>
+            </div>
+          );
+        },
         numericKeys: ["advisorId"],
         createDefaults: {},
       };
@@ -132,6 +165,9 @@ function buildConfig(entity: EntityName, opts: SelectOptions | undefined): Entit
           { key: "description", label: "Subject description", type: "text", required: true, placeholder: "e.g., Assessment in Learning 1" },
         ],
         toForm: (r) => ({ description: (r as SubjectDTO).description }),
+        card: (r) => (
+          <span className="text-base font-medium text-text">{(r as SubjectDTO).description}</span>
+        ),
         numericKeys: [],
         createDefaults: {},
       };
@@ -145,6 +181,9 @@ function buildConfig(entity: EntityName, opts: SelectOptions | undefined): Entit
           { key: "name", label: "Room name", type: "text", required: true, placeholder: "e.g., 201" },
         ],
         toForm: (r) => ({ name: (r as RoomDTO).name }),
+        card: (r) => (
+          <span className="text-base font-semibold text-text">Room {(r as RoomDTO).name}</span>
+        ),
         numericKeys: [],
         createDefaults: {},
       };
@@ -183,6 +222,24 @@ function buildConfig(entity: EntityName, opts: SelectOptions | undefined): Entit
             days: s.days.join(","),
           };
         },
+        card: (r) => {
+          const s = r as ScheduleDTO;
+          return (
+            <div className="flex flex-col gap-1.5">
+              <span className="text-base font-semibold text-text">{s.subjectDescription}</span>
+              <span className="text-sm text-muted">Block: {s.blockName}</span>
+              <span className="text-sm text-muted">
+                Faculty: {s.facultyId === 0 ? <span className="italic">None</span> : s.facultyName}
+              </span>
+              <span className="text-sm text-muted">Room: {s.roomName}</span>
+              <span className="text-sm tabular-nums text-muted">{s.startTime}–{s.endTime}</span>
+              <span className="flex flex-wrap items-center gap-1.5">
+                <DayDots days={s.days as DayCode[]} />
+                <span className="rounded-full bg-accent/10 px-2 py-0.5 text-[11px] font-semibold text-accent">{s.semester}</span>
+              </span>
+            </div>
+          );
+        },
         numericKeys: ["blockId", "subjectId", "roomId", "facultyId"],
         createDefaults: { semester: "1st Sem" },
       };
@@ -215,6 +272,7 @@ export function EntityManager({
   const [formError, setFormError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [removing, setRemoving] = useState(false);
+  const [view, setView] = useState<ViewMode>("list");
   const mountedRef = useRef(true);
 
   useEffect(() => {
@@ -318,6 +376,7 @@ export function EntityManager({
           {description && <p className="mt-0.5 text-sm text-muted">{description}</p>}
         </div>
         <div className="flex items-center gap-2">
+          <ViewToggle view={view} onChange={setView} />
           {entity === "schedules" && <ExportSchedulesButton />}
           <Button variant="ghost" size="md" onClick={reload} aria-label="Refresh list" className="px-2.5">
             <RefreshCw aria-hidden="true" className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
@@ -344,17 +403,35 @@ export function EntityManager({
         </Notice>
       )}
 
-      <div className="rounded-lg border border-border bg-surface">
-        {loading ? (
-          <div className="px-4 py-3 sm:px-5"><SkeletonRows /></div>
-        ) : rows.length === 0 ? (
+      {loading ? (
+        <div className="rounded-lg border border-border bg-surface px-4 py-3 sm:px-5"><SkeletonRows /></div>
+      ) : rows.length === 0 ? (
+        <div className="rounded-lg border border-border bg-surface">
           <EmptyState
             title={`No ${title.toLowerCase()} yet`}
             description="Add the first entry to get started."
             icon={Plus}
             action={<Button size="sm" onClick={openCreate}><Plus aria-hidden="true" className="h-4 w-4" /> Add</Button>}
           />
-        ) : (
+        </div>
+      ) : view === "grid" ? (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {rows.map((row) => (
+            <div key={row.id} className="flex flex-col gap-3 rounded-lg border border-border bg-surface p-4">
+              <div className="flex-1">{cfg.card(row)}</div>
+              <div className="flex justify-end gap-1">
+                <Button variant="ghost" size="sm" onClick={() => openEdit(row)} aria-label={`Edit ${title} entry`}>
+                  <Pencil aria-hidden="true" className="h-3.5 w-3.5" />
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => setDeleting(row)} aria-label={`Delete ${title} entry`} className="hover:text-danger">
+                  <Trash2 aria-hidden="true" className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="rounded-lg border border-border bg-surface">
           <TableShell>
             <THead>
               <TR>
@@ -382,8 +459,8 @@ export function EntityManager({
               ))}
             </TBody>
           </TableShell>
-        )}
-      </div>
+        </div>
+      )}
 
       <Dialog
         open={dialogOpen}

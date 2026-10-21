@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/dialog";
 import { Notice, EmptyState, SkeletonRows } from "@/components/notice";
 import { TableShell, THead, TBody, TR, TH, TD } from "@/components/ui/table";
+import { ViewToggle, type ViewMode } from "@/components/ui/view-toggle";
 import { ApiError, apiFetch } from "@/components/api-client";
 import type { RosterEntryDTO } from "@/lib/types";
 
@@ -26,6 +27,7 @@ export function RosterSection({ initialRows, initialDegraded }: {
   const [importOk, setImportOk] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<RosterEntryDTO | null>(null);
   const [removing, setRemoving] = useState(false);
+  const [view, setView] = useState<ViewMode>("list");
   const fileRef = useRef<HTMLInputElement>(null);
   const mountedRef = useRef(true);
 
@@ -94,9 +96,12 @@ export function RosterSection({ initialRows, initialDegraded }: {
           <h1 className="text-lg font-semibold tracking-tight text-text">Roster</h1>
           <p className="mt-0.5 text-sm text-muted">Official student list — import via CSV (columns: name, block).</p>
         </div>
-        <Button variant="ghost" onClick={reload} aria-label="Refresh roster" className="px-2.5">
-          <RefreshCw aria-hidden="true" className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-        </Button>
+        <div className="flex items-center gap-2">
+          <ViewToggle view={view} onChange={setView} />
+          <Button variant="ghost" onClick={reload} aria-label="Refresh roster" className="px-2.5">
+            <RefreshCw aria-hidden="true" className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+          </Button>
+        </div>
       </div>
 
       <div className="rounded-lg border border-border bg-surface p-4 sm:p-5">
@@ -135,16 +140,34 @@ export function RosterSection({ initialRows, initialDegraded }: {
         </Notice>
       )}
 
-      <div className="rounded-lg border border-border bg-surface">
-        {loading ? (
-          <div className="px-4 py-3 sm:px-5"><SkeletonRows /></div>
-        ) : rows.length === 0 ? (
+      {loading ? (
+        <div className="rounded-lg border border-border bg-surface px-4 py-3 sm:px-5"><SkeletonRows /></div>
+      ) : rows.length === 0 ? (
+        <div className="rounded-lg border border-border bg-surface">
           <EmptyState
             title="Roster is empty"
             description="Import a CSV file with name and block columns."
             icon={Upload}
           />
-        ) : (
+        </div>
+      ) : view === "grid" ? (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {rows.map((r) => (
+            <div key={r.id} className="flex flex-col gap-2 rounded-lg border border-border bg-surface p-4">
+              <div className="flex-1">
+                <span className="block text-base font-semibold text-text">{r.name}</span>
+                <span className="block text-sm text-muted">Block: {r.blockName ?? "—"}</span>
+              </div>
+              <div className="flex justify-end">
+                <Button variant="ghost" size="sm" onClick={() => setDeleting(r)} aria-label={`Delete roster entry ${r.name}`} className="hover:text-danger">
+                  <Trash2 aria-hidden="true" className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="rounded-lg border border-border bg-surface">
           <TableShell>
             <THead>
               <TR>
@@ -167,8 +190,8 @@ export function RosterSection({ initialRows, initialDegraded }: {
               ))}
             </TBody>
           </TableShell>
-        )}
-      </div>
+        </div>
+      )}
 
       <ConfirmDialog
         open={deleting !== null}
