@@ -28,12 +28,14 @@ export interface Degradable<T> { data: T; degraded: boolean; }
 export interface ScheduleRowVM extends ScheduleDTO { badge: StatusBadge; }
 export interface UtilizationTable extends RoomWeeklyTable { rows: ScheduleRowVM[]; }
 
-/** Server-side fetch of an internal API path with short timeout + graceful failure.
+/** Server-side fetch of an internal API path with graceful failure.
  *  POST-SHIP FIX 2 (2026-10-20): forwards the incoming request's `cookie` header so the
  *  call is authenticated as the logged-in user. Without it, every CRUD GET returned 401
  *  (they are role-guarded) and dashboards silently rendered mock sample data. Read
  *  authorization per endpoint: schedules GET accepts any authenticated role; faculty and
- *  blocks GET are public reads (registration + dashboards); the rest stay admin-only. */
+ *  blocks GET are public reads (registration + dashboards); the rest stay admin-only.
+ *  The timeout is generous (8s) so a cold dev compile never flips a page into its
+ *  "Sample data" degraded mode — the API is the real data source, mocks are a last resort. */
 async function tryApi<T>(path: string): Promise<T | null> {
   try {
     const h = await headers();
@@ -43,7 +45,7 @@ async function tryApi<T>(path: string): Promise<T | null> {
     const res = await fetch(`${proto}://${host}${path}`, {
       cache: "no-store",
       headers: cookie ? { cookie } : undefined,
-      signal: AbortSignal.timeout(2500),
+      signal: AbortSignal.timeout(8000),
     });
     if (!res.ok) return null;
     const body = (await res.json()) as { data?: T };

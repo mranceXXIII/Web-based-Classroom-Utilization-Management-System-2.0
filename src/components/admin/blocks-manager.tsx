@@ -8,6 +8,7 @@ import { Dialog, ConfirmDialog } from "@/components/ui/dialog";
 import { Notice, EmptyState, SkeletonRows } from "@/components/notice";
 import { TableShell, THead, TBody, TR, TH, TD } from "@/components/ui/table";
 import { Card } from "@/components/ui/card";
+import { ViewToggle, type ViewMode } from "@/components/ui/view-toggle";
 import type { BlockDTO, DepartmentDTO } from "@/lib/types";
 import { ApiError, apiFetch } from "@/components/api-client";
 
@@ -45,6 +46,43 @@ interface DepartmentGroup {
   blockCount: number;
 }
 
+/** Uniform block table — shared by the list accordions and the grid drill-down. */
+function BlockTable({ blocks, onEdit, onDelete }: {
+  blocks: BlockDTO[];
+  onEdit: (block: BlockDTO) => void;
+  onDelete: (block: BlockDTO) => void;
+}) {
+  return (
+    <TableShell>
+      <THead>
+        <TR>
+          <TH>Block</TH>
+          <TH>Advisor</TH>
+          <TH className="text-right">Actions</TH>
+        </TR>
+      </THead>
+      <TBody>
+        {blocks.map((block) => (
+          <TR key={block.id}>
+            <TD className="font-medium">{block.name}</TD>
+            <TD className="text-muted">{block.advisorName ?? "—"}</TD>
+            <TD className="text-right">
+              <span className="inline-flex justify-end gap-1">
+                <Button variant="ghost" size="sm" onClick={() => onEdit(block)} aria-label={`Edit ${block.name}`}>
+                  <Pencil aria-hidden="true" className="h-3.5 w-3.5" />
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => onDelete(block)} aria-label={`Delete ${block.name}`} className="hover:text-danger">
+                  <Trash2 aria-hidden="true" className="h-3.5 w-3.5" />
+                </Button>
+              </span>
+            </TD>
+          </TR>
+        ))}
+      </TBody>
+    </TableShell>
+  );
+}
+
 export function BlocksManager({
   initialRows,
   initialDegraded,
@@ -75,6 +113,9 @@ export function BlocksManager({
   const [saving, setSaving] = useState(false);
   const [savingDept, setSavingDept] = useState(false);
   const [removing, setRemoving] = useState(false);
+  const [view, setView] = useState<ViewMode>("list");
+  const [selectedDeptId, setSelectedDeptId] = useState<number | null>(null);
+  const [selectedYear, setSelectedYear] = useState<string | null>(null);
   const mountedRef = useRef(true);
 
   useEffect(() => {
@@ -121,6 +162,9 @@ export function BlocksManager({
       return { department, years, blockCount: deptBlocks.length };
     });
   }, [departments, rows]);
+
+  const selectedGroup = deptGroups.find((g) => g.department.id === selectedDeptId) ?? null;
+  const selectedYearGroup = selectedGroup?.years.find((y) => y.year === selectedYear) ?? null;
 
   const dialogOpen = creatingYear !== null || editing !== null;
 
@@ -238,6 +282,7 @@ export function BlocksManager({
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <ViewToggle view={view} onChange={setView} />
           <Button variant="ghost" size="md" onClick={reload} aria-label="Refresh list" className="px-2.5">
             <RefreshCw aria-hidden="true" className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
             <span className="sr-only">Refresh</span>
@@ -266,7 +311,132 @@ export function BlocksManager({
         </Notice>
       )}
 
-      {deptGroups.length === 0 ? (
+      {/* GRID VIEW — department cards → year cards → blocks, with breadcrumbs */}
+      {view === "grid" && (
+        <div className="flex flex-col gap-4">
+          <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1.5 text-sm">
+            <button
+              type="button"
+              onClick={() => { setSelectedDeptId(null); setSelectedYear(null); }}
+              className={`rounded-md px-2 py-1 transition-colors duration-200 hover:bg-surface-2 ${selectedDeptId === null ? "font-semibold text-text" : "text-muted"}`}
+            >
+              All departments
+            </button>
+            {selectedGroup && (
+              <>
+                <span aria-hidden="true" className="text-muted">/</span>
+                <button
+                  type="button"
+                  onClick={() => setSelectedYear(null)}
+                  className={`rounded-md px-2 py-1 transition-colors duration-200 hover:bg-surface-2 ${selectedYear === null ? "font-semibold text-text" : "text-muted"}`}
+                >
+                  {selectedGroup.department.name}
+                </button>
+              </>
+            )}
+            {selectedGroup && selectedYear && (
+              <>
+                <span aria-hidden="true" className="text-muted">/</span>
+                <span className="px-2 py-1 font-semibold text-text">{yearLabel(selectedYear)}</span>
+              </>
+            )}
+          </nav>
+
+          {!selectedGroup && (
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {deptGroups.map((g) => (
+                <button
+                  key={g.department.id}
+                  type="button"
+                  onClick={() => { setSelectedDeptId(g.department.id); setSelectedYear(null); }}
+                  className="group rounded-lg border border-border bg-surface p-4 text-left transition-colors duration-200 hover:border-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <span className="flex items-center gap-2.5">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-md bg-accent/10 text-accent">
+                      <Building2 aria-hidden="true" className="h-4 w-4" />
+                    </span>
+                    <span className="truncate text-base font-semibold text-text">{g.department.name}</span>
+                  </span>
+                  <span className="mt-3 block text-2xl font-semibold tabular-nums text-text">{g.blockCount}</span>
+                  <span className="mt-1 block text-xs text-muted">
+                    {g.years.length} year level{g.years.length === 1 ? "" : "s"} · click to view blocks
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {selectedGroup && !selectedYear && (
+            <div className="flex flex-col gap-3">
+              <div className="flex justify-end">
+                <Button variant="secondary" size="sm" onClick={() => openCreate(selectedGroup.department.id)}>
+                  <Plus aria-hidden="true" className="h-3.5 w-3.5" />
+                  Add block in {selectedGroup.department.name}
+                </Button>
+              </div>
+              {selectedGroup.years.length === 0 ? (
+                <div className="rounded-lg border border-border bg-surface">
+                  <EmptyState
+                    title="No blocks in this department yet"
+                    description="Add the first block — pick the year level inside the form."
+                    icon={Plus}
+                    action={<Button size="sm" onClick={() => openCreate(selectedGroup.department.id)}><Plus aria-hidden="true" className="h-4 w-4" /> Add block</Button>}
+                  />
+                </div>
+              ) : (
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {selectedGroup.years.map((yg) => (
+                    <button
+                      key={yg.year}
+                      type="button"
+                      onClick={() => setSelectedYear(yg.year)}
+                      className="rounded-lg border border-border bg-surface p-4 text-left transition-colors duration-200 hover:border-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      <span className="block text-base font-semibold text-text">{yg.label}</span>
+                      <span className="mt-2 block text-2xl font-semibold tabular-nums text-text">{yg.blocks.length}</span>
+                      <span className="mt-1 block text-xs text-muted">block{yg.blocks.length === 1 ? "" : "s"} · click to view</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {selectedGroup && selectedYear && (
+            <div className="rounded-lg border border-border bg-surface">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3 sm:px-5">
+                <div>
+                  <p className="text-base font-semibold text-text">
+                    {selectedGroup.department.name} · {yearLabel(selectedYear)}
+                  </p>
+                  <p className="text-sm text-muted">
+                    {selectedYearGroup?.blocks.length ?? 0} block{(selectedYearGroup?.blocks.length ?? 0) === 1 ? "" : "s"}
+                  </p>
+                </div>
+                <Button variant="secondary" size="sm" onClick={() => openCreate(selectedGroup.department.id, selectedYear)}>
+                  <Plus aria-hidden="true" className="h-3.5 w-3.5" />
+                  Add block
+                </Button>
+              </div>
+              <div className="p-4 sm:p-5">
+                {selectedYearGroup && selectedYearGroup.blocks.length > 0 ? (
+                  <BlockTable blocks={selectedYearGroup.blocks} onEdit={openEdit} onDelete={setDeleting} />
+                ) : (
+                  <EmptyState
+                    title="No blocks in this year level"
+                    description="Add the first block for this year level."
+                    icon={Plus}
+                    action={<Button size="sm" onClick={() => openCreate(selectedGroup.department.id, selectedYear)}><Plus aria-hidden="true" className="h-4 w-4" /> Add block</Button>}
+                  />
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* LIST VIEW ANCHOR */}
+      {view === "list" && (deptGroups.length === 0 ? (
         <div className="rounded-lg border border-border bg-surface">
           <EmptyState
             title="No departments yet"
@@ -367,33 +537,11 @@ export function BlocksManager({
                                   action={<Button size="sm" onClick={() => openCreate(group.department.id, yearGroup.year)}><Plus aria-hidden="true" className="h-4 w-4" /> Add block</Button>}
                                 />
                               ) : (
-                                <TableShell>
-                                  <THead>
-                                    <TR>
-                                      <TH>Block</TH>
-                                      <TH>Advisor</TH>
-                                      <TH className="text-right">Actions</TH>
-                                    </TR>
-                                  </THead>
-                                  <TBody>
-                                    {yearGroup.blocks.map((block) => (
-                                      <TR key={block.id}>
-                                        <TD className="font-medium">{block.name}</TD>
-                                        <TD className="text-muted">{block.advisorName ?? "—"}</TD>
-                                        <TD className="text-right">
-                                          <span className="inline-flex justify-end gap-1">
-                                            <Button variant="ghost" size="sm" onClick={() => openEdit(block)} aria-label={`Edit ${block.name}`}>
-                                              <Pencil aria-hidden="true" className="h-3.5 w-3.5" />
-                                            </Button>
-                                            <Button variant="ghost" size="sm" onClick={() => setDeleting(block)} aria-label={`Delete ${block.name}`} className="hover:text-danger">
-                                              <Trash2 aria-hidden="true" className="h-3.5 w-3.5" />
-                                            </Button>
-                                          </span>
-                                        </TD>
-                                      </TR>
-                                    ))}
-                                  </TBody>
-                                </TableShell>
+                                <BlockTable
+                                  blocks={yearGroup.blocks}
+                                  onEdit={openEdit}
+                                  onDelete={setDeleting}
+                                />
                               )}
                             </div>
                           )}
@@ -406,7 +554,7 @@ export function BlocksManager({
             );
           })}
         </div>
-      )}
+      ))}
 
       <Dialog
         open={dialogOpen}
