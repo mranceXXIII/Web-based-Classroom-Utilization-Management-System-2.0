@@ -1,11 +1,12 @@
 "use client";
 
 import { Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 /* "Convert Table to CSV" — ported from list.php/tablelist.php: walks the DOM
  * table rows, quotes every cell's text content, and downloads `${tableId}_data.csv`.
  * Works on the server-rendered table markup by element id, exactly like the PHP
- * buttons did. */
+ * buttons did. Uses the uniform Button (secondary/sm) per the design system. */
 export function CsvButton({
   tableId,
   label = "Convert Table to CSV",
@@ -36,13 +37,10 @@ export function CsvButton({
   }
 
   return (
-    <button
-      type="button"
-      onClick={convert}
-      className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-xs font-medium text-muted transition-colors duration-200 hover:bg-surface-2 hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-    >
+    <Button variant="secondary" size="sm" onClick={convert}>
       <Download aria-hidden="true" className="h-3.5 w-3.5" />
       {label}
-    </button>
+    </Button>
   );
 }
+

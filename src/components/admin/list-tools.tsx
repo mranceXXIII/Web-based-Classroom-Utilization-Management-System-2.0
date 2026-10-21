@@ -3,10 +3,12 @@
 import { useRouter } from "next/navigation";
 import { useRef } from "react";
 import { RefreshCw, Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 /* Search + Refresh toolbar — ported from list.php: the search filters every
- * table row on the page by its text content (case-sensitive contains, like the
- * PHP `cell.textContent.includes(keyword)`), refresh restores all rows. */
+ * table row on the page by its text content (contains, like the PHP
+ * `cell.textContent.includes(keyword)`), refresh restores all rows and
+ * re-fetches live data. Uniform Button + field input styling. */
 export function ListTools() {
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
@@ -49,24 +51,17 @@ export function ListTools() {
         onKeyDown={(e) => {
           if (e.key === "Enter") search();
         }}
-        className="h-9 w-48 rounded-md border border-border bg-surface px-3 text-sm text-text placeholder:text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="h-8 w-48 rounded-md border border-border bg-surface px-3 text-sm text-text placeholder:text-muted/70 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:border-accent"
       />
-      <button
-        type="button"
-        onClick={search}
-        className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-accent-contrast transition-colors duration-200 hover:bg-rsu-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-      >
+      <Button variant="primary" size="sm" onClick={search}>
         <Search aria-hidden="true" className="h-3.5 w-3.5" />
         Search
-      </button>
-      <button
-        type="button"
-        onClick={refresh}
-        className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-xs font-medium text-muted transition-colors duration-200 hover:bg-surface-2 hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-      >
+      </Button>
+      <Button variant="secondary" size="sm" onClick={refresh}>
         <RefreshCw aria-hidden="true" className="h-3.5 w-3.5" />
         Refresh
-      </button>
+      </Button>
     </div>
   );
 }
+
