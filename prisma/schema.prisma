@@ -33,14 +33,27 @@ model FacultyProfile {
   blocks        Block[]
 }
 
+model Department {
+  id     Int     @id @default(autoincrement())
+  name   String  @unique
+  blocks Block[]
+}
+
 model Block {
   id        Int           @id @default(autoincrement())
   name      String        @unique
   yearLevel String
   advisorId Int?
   advisor   FacultyProfile? @relation(fields: [advisorId], references: [id], onDelete: SetNull)
+  // Department grouping (IT / Education / Agriculture). Nullable so the
+  // migration backfills legacy rows without a table rebuild; the UI requires
+  // selecting a department when adding a block.
+  departmentId Int?
+  department   Department?  @relation(fields: [departmentId], references: [id], onDelete: SetNull)
   roster    RosterEntry[]
   schedules Schedule[]
+
+  @@index([departmentId])
 }
 
 model Subject {

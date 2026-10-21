@@ -1,22 +1,24 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ChevronDown, Pencil, Plus, RefreshCw, Trash2 } from "lucide-react";
+import { Building2, ChevronDown, Pencil, Plus, RefreshCw, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Select } from "@/components/ui/field";
 import { Dialog, ConfirmDialog } from "@/components/ui/dialog";
 import { Notice, EmptyState, SkeletonRows } from "@/components/notice";
 import { TableShell, THead, TBody, TR, TH, TD } from "@/components/ui/table";
-import type { BlockDTO } from "@/lib/types";
+import { Card } from "@/components/ui/card";
+import type { BlockDTO, DepartmentDTO } from "@/lib/types";
 import { ApiError, apiFetch } from "@/components/api-client";
 
-/* Blocks module — year-level accordion (mirrors the Utilization room view):
- * each year level renders as a collapsed summary card; clicking it expands to
- * the blocks of that year (block, advisor) with edit/delete actions, plus an
- * "Add block" that prefills the year level. CRUD goes through the frozen
- * /api/crud/blocks contract. Advisor is nullable in the API contract — an
- * empty selection omits advisorId from the payload instead of sending "".
- * Server pages pass only serializable props. */
+/* Blocks module — Department → Year level → Blocks, all as collapsible cards
+ * (same pattern as the Utilization room view): click a department to see its
+ * year levels, click a year level to see its blocks. "Add department" creates
+ * a new department; "Add block" only offers departments that already exist
+ * (select), prefilled when opened inside a department/year. CRUD goes through
+ * the frozen /api/crud/blocks and /api/crud/departments contracts. Advisor and
+ * department are nullable in the contracts — empty selects omit the id from
+ * the payload instead of sending "". Server pages pass only serializable props. */
 
 type Opt = { value: string; label: string };
 type FormValues = Record<string, string>;
@@ -31,27 +33,47 @@ function yearLabel(year: string): string {
   return Number.isNaN(n) ? year : `Year ${n}`;
 }
 
+interface YearGroup {
+  year: string;
+  label: string;
+  blocks: BlockDTO[];
+}
+
+interface DepartmentGroup {
+  department: DepartmentDTO;
+  years: YearGroup[];
+  blockCount: number;
+}
+
 export function BlocksManager({
   initialRows,
   initialDegraded,
+  initialDepartments,
   facultyOptions,
 }: {
   initialRows: BlockDTO[];
   initialDegraded: boolean;
+  initialDepartments: DepartmentDTO[];
   facultyOptions: Opt[];
 }) {
   const [rows, setRows] = useState<BlockDTO[]>(initialRows);
+  const [departments, setDepartments] = useState<DepartmentDTO[]>(initialDepartments);
   const [degraded, setDegraded] = useState(initialDegraded);
   const [listError, setListError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [expanded, setExpanded] = useState<string[]>([]);
-  const [creatingYear, setCreatingYear] = useState<string | null>(null); // null = dialog closed
+  const [openDepts, setOpenDepts] = useState<number[]>([]);
+  const [openYears, setOpenYears] = useState<string[]>([]); // `${deptId}--${year}`
+  const [creatingYear, setCreatingYear] = useState<string | null>(null); // null = block dialog closed
+  const [creatingDept, setCreatingDept] = useState(false);
   const [editing, setEditing] = useState<BlockDTO | null>(null);
   const [deleting, setDeleting] = useState<BlockDTO | null>(null);
   const [values, setValues] = useState<FormValues>({});
+  const [deptName, setDeptName] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
+  const [deptError, setDeptError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [savingDept, setSavingDept] = useState(false);
   const [removing, setRemoving] = useState(false);
   const mountedRef = useRef(true);
 
@@ -64,8 +86,11 @@ export function BlocksManager({
     setLoading(true);
     setListError(null);
     try {
-      const data = await apiFetch<BlockDTO[]>("/api/crud/blocks");
-      if (mountedRef.current) { setRows(data); setDegraded(false); }
+      const [blocks, depts] = await Promise.all([
+        apiFetch<BlockDTO[]>("/api/crud/blocks"),
+        apiFetch<DepartmentDTO[]>("/api/crud/departments"),
+      ]);
+      if (mountedRef.current) { setRows(blocks); setDepartments(depts); setDegraded(false); }
     } catch (err) {
       if (mountedRef.current) {
         setListError(err instanceof ApiError ? err.message : "Could not load data.");
@@ -75,30 +100,46 @@ export function BlocksManager({
     }
   }, []);
 
-  const groups = useMemo(() => {
-    const map = new Map<string, BlockDTO[]>();
-    for (const b of rows) {
-      const list = map.get(b.yearLevel) ?? [];
-      list.push(b);
-      map.set(b.yearLevel, list);
-    }
-    return Array.from(map.entries())
-      .map(([year, blocks]) => ({
-        year,
-        label: yearLabel(year),
-        blocks: blocks.sort((a, b) => a.name.localeCompare(b.name)),
-      }))
-      .sort((a, b) => yearSortKey(a.year) - yearSortKey(b.year) || a.year.localeCompare(b.year));
-  }, [rows]);
+  /* Grouping: departments (in their stored order) → year levels (numeric
+   * year levels first, free-text labels after) → blocks (alphabetical). */
+  const deptGroups = useMemo<DepartmentGroup[]>(() => {
+    return departments.map((department) => {
+      const deptBlocks = rows.filter((b) => b.departmentId === department.id);
+      const yearMap = new Map<string, BlockDTO[]>();
+      for (const b of deptBlocks) {
+        const list = yearMap.get(b.yearLevel) ?? [];
+        list.push(b);
+        yearMap.set(b.yearLevel, list);
+      }
+      const years = Array.from(yearMap.entries())
+        .map(([year, blocks]) => ({
+          year,
+          label: yearLabel(year),
+          blocks: blocks.sort((a, b) => a.name.localeCompare(b.name)),
+        }))
+        .sort((a, b) => yearSortKey(a.year) - yearSortKey(b.year) || a.year.localeCompare(b.year));
+      return { department, years, blockCount: deptBlocks.length };
+    });
+  }, [departments, rows]);
 
   const dialogOpen = creatingYear !== null || editing !== null;
 
-  function toggle(year: string) {
-    setExpanded((ys) => (ys.includes(year) ? ys.filter((y) => y !== year) : [...ys, year]));
+  function toggleDept(deptId: number) {
+    setOpenDepts((ids) => (ids.includes(deptId) ? ids.filter((id) => id !== deptId) : [...ids, deptId]));
   }
 
-  function openCreate(year?: string) {
-    setValues({ name: "", yearLevel: year ?? "", advisorId: "" });
+  function toggleYear(key: string) {
+    setOpenYears((ys) => (ys.includes(key) ? ys.filter((y) => y !== key) : [...ys, key]));
+  }
+
+  function openCreate(deptId?: number, year?: string) {
+    const dept = deptId ?? (openDepts.length === 1 ? openDepts[0] : undefined);
+    setValues({
+      name: "",
+      yearLevel: year ?? "",
+      advisorId: "",
+      departmentId: dept !== undefined ? String(dept) : "",
+    });
     setFieldErrors({});
     setFormError(null);
     setCreatingYear(year ?? "");
@@ -110,6 +151,7 @@ export function BlocksManager({
       name: block.name,
       yearLevel: block.yearLevel,
       advisorId: block.advisorId === null ? "" : String(block.advisorId),
+      departmentId: block.departmentId === null ? "" : String(block.departmentId),
     });
     setFieldErrors({});
     setFormError(null);
@@ -122,8 +164,9 @@ export function BlocksManager({
       name: values.name ?? "",
       yearLevel: values.yearLevel ?? "",
     };
-    // advisorId is nullable in the contract — omit it when no advisor is chosen
+    // advisor/department are nullable in the contract — omit empty selections
     if (values.advisorId !== "") payload.advisorId = Number(values.advisorId);
+    if (values.departmentId !== "") payload.departmentId = Number(values.departmentId);
     return payload;
   }
 
@@ -169,19 +212,38 @@ export function BlocksManager({
     }
   }
 
+  async function saveDepartment(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setSavingDept(true);
+    setDeptError(null);
+    try {
+      await apiFetch("/api/crud/departments", { method: "POST", body: JSON.stringify({ name: deptName }) });
+      setCreatingDept(false);
+      setDeptName("");
+      await reload();
+    } catch (err) {
+      setDeptError(err instanceof ApiError ? err.message : "Something went wrong. Please try again.");
+    } finally {
+      setSavingDept(false);
+    }
+  }
+
   return (
     <section className="flex flex-col gap-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-lg font-semibold tracking-tight text-text">Blocks</h1>
           <p className="mt-0.5 text-sm text-muted">
-            Class blocks grouped by year level · click a year to see its blocks.
+            Departments → year levels → blocks · click a department to drill down.
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="md" onClick={reload} aria-label="Refresh list" className="px-2.5">
             <RefreshCw aria-hidden="true" className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
             <span className="sr-only">Refresh</span>
+          </Button>
+          <Button variant="secondary" size="md" onClick={() => { setCreatingDept(true); setDeptName(""); setDeptError(null); }}>
+            <Building2 aria-hidden="true" className="h-4 w-4" /> Add department
           </Button>
           <Button size="md" onClick={() => openCreate()}>
             <Plus aria-hidden="true" className="h-4 w-4" /> Add block
@@ -204,94 +266,143 @@ export function BlocksManager({
         </Notice>
       )}
 
-      {groups.length === 0 ? (
+      {deptGroups.length === 0 ? (
         <div className="rounded-lg border border-border bg-surface">
           <EmptyState
-            title="No blocks yet"
-            description="Add the first block to get started."
-            icon={Plus}
-            action={<Button size="sm" onClick={() => openCreate()}><Plus aria-hidden="true" className="h-4 w-4" /> Add block</Button>}
+            title="No departments yet"
+            description="Add a department first, then add its blocks."
+            icon={Building2}
+            action={<Button size="sm" onClick={() => { setCreatingDept(true); setDeptName(""); setDeptError(null); }}><Building2 aria-hidden="true" className="h-4 w-4" /> Add department</Button>}
           />
         </div>
       ) : (
         <div className="flex flex-col gap-3">
-          {groups.map((group) => {
-            const open = expanded.includes(group.year);
+          {deptGroups.map((group) => {
+            const deptOpen = openDepts.includes(group.department.id);
             return (
-              <div key={group.year} className="rounded-lg border border-border bg-surface">
-                <button
-                  type="button"
-                  onClick={() => toggle(group.year)}
-                  aria-expanded={open}
-                  aria-controls={`blocks-year-${group.year}`}
-                  className="flex w-full flex-wrap items-center justify-between gap-2 px-4 py-3 text-left transition-colors duration-200 hover:bg-surface-2/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:px-5"
-                >
-                  <span className="flex min-w-0 items-center gap-3">
-                    <ChevronDown
-                      aria-hidden="true"
-                      className={`h-4 w-4 shrink-0 text-muted transition-transform duration-200 ${open ? "rotate-180" : ""}`}
-                    />
-                    <span className="flex flex-col leading-tight">
-                      <span className="text-base font-semibold tracking-tight text-text">{group.label}</span>
-                      <span className="text-sm text-muted">
-                        {group.blocks.length === 0
-                          ? "No blocks in this year yet"
-                          : `${group.blocks.length} block${group.blocks.length === 1 ? "" : "s"} · click to view`}
+              <Card key={group.department.id}>
+                <div className="border-b border-border">
+                  <button
+                    type="button"
+                    onClick={() => toggleDept(group.department.id)}
+                    aria-expanded={deptOpen}
+                    aria-controls={`dept-${group.department.id}`}
+                    className="flex w-full flex-wrap items-center justify-between gap-2 px-4 py-3 text-left transition-colors duration-200 hover:bg-surface-2/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:px-5"
+                  >
+                    <span className="flex min-w-0 items-center gap-3">
+                      <ChevronDown
+                        aria-hidden="true"
+                        className={`h-4 w-4 shrink-0 text-muted transition-transform duration-200 ${deptOpen ? "rotate-180" : ""}`}
+                      />
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-accent/10 text-accent">
+                        <Building2 aria-hidden="true" className="h-4 w-4" />
+                      </span>
+                      <span className="flex min-w-0 flex-col leading-tight">
+                        <span className="text-base font-semibold tracking-tight text-text">{group.department.name}</span>
+                        <span className="text-sm text-muted">
+                          {group.blockCount === 0
+                            ? "No blocks yet"
+                            : `${group.blockCount} block${group.blockCount === 1 ? "" : "s"} across ${group.years.length} year level${group.years.length === 1 ? "" : "s"} · click to view`}
+                        </span>
                       </span>
                     </span>
-                  </span>
-                  <span className="inline-flex items-center gap-1.5">
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={(e) => { e.stopPropagation(); openCreate(group.year); }}
-                    >
-                      <Plus aria-hidden="true" className="h-3.5 w-3.5" />
-                      Add in {group.label}
-                    </Button>
-                  </span>
-                </button>
-                {open && (
-                  <div id={`blocks-year-${group.year}`} className="px-4 pb-4 sm:px-5">
-                    {group.blocks.length === 0 ? (
+                  </button>
+                </div>
+                {deptOpen && (
+                  <div id={`dept-${group.department.id}`} className="flex flex-col gap-3 px-4 py-4 sm:px-5">
+                    <div className="flex justify-end">
+                      <Button variant="secondary" size="sm" onClick={() => openCreate(group.department.id)}>
+                        <Plus aria-hidden="true" className="h-3.5 w-3.5" />
+                        Add block in {group.department.name}
+                      </Button>
+                    </div>
+                    {group.years.length === 0 && (
                       <EmptyState
-                        title={`No blocks in ${group.label}`}
-                        description="Add the first block for this year level."
+                        title="No blocks in this department yet"
+                        description="Add the first block — pick the year level inside the form."
                         icon={Plus}
-                        action={<Button size="sm" onClick={() => openCreate(group.year)}><Plus aria-hidden="true" className="h-4 w-4" /> Add block</Button>}
+                        action={<Button size="sm" onClick={() => openCreate(group.department.id)}><Plus aria-hidden="true" className="h-4 w-4" /> Add block</Button>}
                       />
-                    ) : (
-                      <TableShell>
-                        <THead>
-                          <TR>
-                            <TH>Block</TH>
-                            <TH>Advisor</TH>
-                            <TH className="text-right">Actions</TH>
-                          </TR>
-                        </THead>
-                        <TBody>
-                          {group.blocks.map((block) => (
-                            <TR key={block.id}>
-                              <TD className="font-medium">{block.name}</TD>
-                              <TD className="text-muted">{block.advisorName ?? "—"}</TD>
-                              <TD className="text-right">
-                                <span className="inline-flex justify-end gap-1">
-                                  <Button variant="ghost" size="sm" onClick={() => openEdit(block)} aria-label={`Edit ${block.name}`}>
-                                    <Pencil aria-hidden="true" className="h-3.5 w-3.5" />
-                                  </Button>
-                                  <Button variant="ghost" size="sm" onClick={() => setDeleting(block)} aria-label={`Delete ${block.name}`} className="hover:text-danger">
-                                    <Trash2 aria-hidden="true" className="h-3.5 w-3.5" />
-                                  </Button>
-                                </span>
-                              </TD>
-                            </TR>
-                          ))}
-                        </TBody>
-                      </TableShell>
                     )}
+                    {group.years.map((yearGroup) => {
+                      const yearKey = `${group.department.id}--${yearGroup.year}`;
+                      const yearOpen = openYears.includes(yearKey);
+                      return (
+                        <div key={yearKey} className="rounded-md border border-border">
+                          <button
+                            type="button"
+                            onClick={() => toggleYear(yearKey)}
+                            aria-expanded={yearOpen}
+                            aria-controls={`blocks-${yearKey}`}
+                            className="flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left transition-colors duration-200 hover:bg-surface-2/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          >
+                            <span className="flex items-center gap-2.5">
+                              <ChevronDown
+                                aria-hidden="true"
+                                className={`h-3.5 w-3.5 text-muted transition-transform duration-200 ${yearOpen ? "rotate-180" : ""}`}
+                              />
+                              <span className="text-sm font-semibold text-text">{yearGroup.label}</span>
+                            </span>
+                            <span className="inline-flex items-center gap-1.5">
+                              <span className="text-xs text-muted">
+                                {yearGroup.blocks.length} block{yearGroup.blocks.length === 1 ? "" : "s"}
+                              </span>
+                              <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={(e) => { e.stopPropagation(); openCreate(group.department.id, yearGroup.year); }}
+                              >
+                                <Plus aria-hidden="true" className="h-3 w-3" />
+                                Add
+                              </Button>
+                            </span>
+                          </button>
+                          {yearOpen && (
+                            <div id={`blocks-${yearKey}`} className="px-3 pb-3">
+                              {yearGroup.blocks.length === 0 ? (
+                                <EmptyState
+                                  title={`No blocks in ${yearGroup.label}`}
+                                  description="Add the first block for this year level."
+                                  icon={Plus}
+                                  action={<Button size="sm" onClick={() => openCreate(group.department.id, yearGroup.year)}><Plus aria-hidden="true" className="h-4 w-4" /> Add block</Button>}
+                                />
+                              ) : (
+                                <TableShell>
+                                  <THead>
+                                    <TR>
+                                      <TH>Block</TH>
+                                      <TH>Advisor</TH>
+                                      <TH className="text-right">Actions</TH>
+                                    </TR>
+                                  </THead>
+                                  <TBody>
+                                    {yearGroup.blocks.map((block) => (
+                                      <TR key={block.id}>
+                                        <TD className="font-medium">{block.name}</TD>
+                                        <TD className="text-muted">{block.advisorName ?? "—"}</TD>
+                                        <TD className="text-right">
+                                          <span className="inline-flex justify-end gap-1">
+                                            <Button variant="ghost" size="sm" onClick={() => openEdit(block)} aria-label={`Edit ${block.name}`}>
+                                              <Pencil aria-hidden="true" className="h-3.5 w-3.5" />
+                                            </Button>
+                                            <Button variant="ghost" size="sm" onClick={() => setDeleting(block)} aria-label={`Delete ${block.name}`} className="hover:text-danger">
+                                              <Trash2 aria-hidden="true" className="h-3.5 w-3.5" />
+                                            </Button>
+                                          </span>
+                                        </TD>
+                                      </TR>
+                                    ))}
+                                  </TBody>
+                                </TableShell>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
-              </div>
+              </Card>
             );
           })}
         </div>
@@ -304,6 +415,14 @@ export function BlocksManager({
       >
         <form onSubmit={save} className="flex flex-col gap-4" noValidate>
           {formError && <Notice variant="error">{formError}</Notice>}
+          <Field label="Department" error={fieldErrors.departmentId} required hint="Only existing departments are selectable.">
+            {({ id, describedBy, invalid }) => (
+              <Select id={id} aria-describedby={describedBy} aria-invalid={invalid} value={values.departmentId ?? ""} invalid={invalid} onChange={(e) => setValues((v) => ({ ...v, departmentId: e.target.value }))}>
+                <option value="" disabled>Select a department…</option>
+                {departments.map((d) => <option key={d.id} value={String(d.id)}>{d.name}</option>)}
+              </Select>
+            )}
+          </Field>
           <Field label="Block name" error={fieldErrors.name} required>
             {({ id, describedBy, invalid }) => (
               <Input id={id} aria-describedby={describedBy} aria-invalid={invalid} value={values.name ?? ""} invalid={invalid} placeholder="e.g., BEEd 3-A" onChange={(e) => setValues((v) => ({ ...v, name: e.target.value }))} />
@@ -329,6 +448,25 @@ export function BlocksManager({
         </form>
       </Dialog>
 
+      <Dialog
+        open={creatingDept}
+        onClose={() => setCreatingDept(false)}
+        title="Add department"
+      >
+        <form onSubmit={saveDepartment} className="flex flex-col gap-4" noValidate>
+          {deptError && <Notice variant="error">{deptError}</Notice>}
+          <Field label="Department name" required>
+            {({ id, describedBy, invalid }) => (
+              <Input id={id} aria-describedby={describedBy} aria-invalid={invalid} value={deptName} placeholder="e.g., IT Department" onChange={(e) => setDeptName(e.target.value)} />
+            )}
+          </Field>
+          <div className="flex justify-end gap-2 pt-1">
+            <Button variant="secondary" onClick={() => setCreatingDept(false)}>Cancel</Button>
+            <Button type="submit" loading={savingDept}>Create department</Button>
+          </div>
+        </form>
+      </Dialog>
+
       <ConfirmDialog
         open={deleting !== null}
         onClose={() => setDeleting(null)}
@@ -340,4 +478,3 @@ export function BlocksManager({
     </section>
   );
 }
-

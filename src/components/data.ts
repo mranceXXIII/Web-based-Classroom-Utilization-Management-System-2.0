@@ -15,11 +15,11 @@ import { headers } from "next/headers";
 import { buildRoomTables, scheduleStatusBadge } from "@/lib/status";
 import { getQuarter } from "@/lib/semester";
 import type {
-  BlockDTO, FacultyDTO, RoomDTO, RoomWeeklyTable, RosterEntryDTO, ScheduleDTO,
+  BlockDTO, DepartmentDTO, FacultyDTO, RoomDTO, RoomWeeklyTable, RosterEntryDTO, ScheduleDTO,
   StatusBadge, SubjectDTO,
 } from "@/lib/types";
 import {
-  mockBlocks, mockFaculty, mockRoster, mockRooms, mockSchedules, mockSubjects,
+  mockBlocks, mockDepartments, mockFaculty, mockRoster, mockRooms, mockSchedules, mockSubjects,
 } from "@/components/mocks";
 
 export interface Degradable<T> { data: T; degraded: boolean; }
@@ -61,6 +61,11 @@ export async function loadFaculty(): Promise<Degradable<FacultyDTO[]>> {
 export async function loadBlocks(): Promise<Degradable<BlockDTO[]>> {
   const data = await tryApi<BlockDTO[]>("/api/crud/blocks");
   return { data: data ?? mockBlocks, degraded: data === null };
+}
+
+export async function loadDepartments(): Promise<Degradable<DepartmentDTO[]>> {
+  const data = await tryApi<DepartmentDTO[]>("/api/crud/departments");
+  return { data: data ?? mockDepartments, degraded: data === null };
 }
 
 export async function loadSubjects(): Promise<Degradable<SubjectDTO[]>> {

@@ -14,7 +14,7 @@
  *   - counts: 7 blocks, 6 roster entries (analysis §3)
  */
 import type {
-  BlockDTO, DayCode, FacultyDTO, RosterEntryDTO, RoomDTO, ScheduleDTO, Semester, SubjectDTO,
+  BlockDTO, DayCode, DepartmentDTO, FacultyDTO, RosterEntryDTO, RoomDTO, ScheduleDTO, Semester, SubjectDTO,
 } from "@/lib/types";
 
 export const DAY_CODES: DayCode[] = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
@@ -37,14 +37,20 @@ export const mockFaculty: FacultyDTO[] = [
   { id: 7, name: "Marco Rivas", academicRank: "Instructor II" /* sample */, advisory: "BSED 1-A" /* sample */, lastHeartbeat: minutesAgo(7500), hasAccount: false },
 ];
 
+export const mockDepartments: DepartmentDTO[] = [
+  { id: 1, name: "IT Department" },
+  { id: 2, name: "Education Department" },
+  { id: 3, name: "Agriculture Department" },
+];
+
 export const mockBlocks: BlockDTO[] = [
-  { id: 1, name: "BEEd 3-A", yearLevel: "3", advisorId: 1, advisorName: "Gerardo Ribon" }, // sample rows
-  { id: 2, name: "BEEd 4-A", yearLevel: "4", advisorId: 5, advisorName: "Ma Lourdes Rivero" },
-  { id: 3, name: "BSED 1-A", yearLevel: "1", advisorId: 7, advisorName: "Marco Rivas" },
-  { id: 4, name: "BSED 2-B", yearLevel: "2", advisorId: 2, advisorName: "Clara Jean Juanzo" },
-  { id: 5, name: "BSED 3-A", yearLevel: "3", advisorId: 3, advisorName: "Angelica Rico" },
-  { id: 6, name: "BSED 4-A", yearLevel: "4", advisorId: 4, advisorName: "Raymund Ipedro" },
-  { id: 7, name: "BEEd 1-A", yearLevel: "1", advisorId: 6, advisorName: "Ezekiel Roa" },
+  { id: 1, departmentId: 2, departmentName: "Education Department", name: "BEEd 3-A", yearLevel: "3", advisorId: 1, advisorName: "Gerardo Ribon" }, // sample rows
+  { id: 2, departmentId: 2, departmentName: "Education Department", name: "BEEd 4-A", yearLevel: "4", advisorId: 5, advisorName: "Ma Lourdes Rivero" },
+  { id: 3, departmentId: 2, departmentName: "Education Department", name: "BSED 1-A", yearLevel: "1", advisorId: 7, advisorName: "Marco Rivas" },
+  { id: 4, departmentId: 2, departmentName: "Education Department", name: "BSED 2-B", yearLevel: "2", advisorId: 2, advisorName: "Clara Jean Juanzo" },
+  { id: 5, departmentId: 2, departmentName: "Education Department", name: "BSED 3-A", yearLevel: "3", advisorId: 3, advisorName: "Angelica Rico" },
+  { id: 6, departmentId: 2, departmentName: "Education Department", name: "BSED 4-A", yearLevel: "4", advisorId: 4, advisorName: "Raymund Ipedro" },
+  { id: 7, departmentId: 2, departmentName: "Education Department", name: "BEEd 1-A", yearLevel: "1", advisorId: 6, advisorName: "Ezekiel Roa" },
 ];
 
 export const mockSubjects: SubjectDTO[] = [

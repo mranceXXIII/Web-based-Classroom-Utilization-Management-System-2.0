@@ -7,7 +7,8 @@ export type Semester = "1st Sem" | "2nd Sem" | "Vacation";
 
 export interface UserDTO { id: number; username: string; role: Role; }
 export interface FacultyDTO { id: number; name: string; academicRank: string; advisory: string; lastHeartbeat: string | null; hasAccount: boolean; }
-export interface BlockDTO { id: number; name: string; yearLevel: string; advisorId: number | null; advisorName: string | null; }
+export interface DepartmentDTO { id: number; name: string; }
+export interface BlockDTO { id: number; name: string; yearLevel: string; advisorId: number | null; advisorName: string | null; departmentId: number | null; departmentName: string | null; }
 export interface SubjectDTO { id: number; description: string; }
 export interface RoomDTO { id: number; name: string; }
 export interface ScheduleDTO {

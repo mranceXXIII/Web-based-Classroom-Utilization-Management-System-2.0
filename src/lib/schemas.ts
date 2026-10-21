@@ -51,6 +51,11 @@ export const blockSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(255),
   yearLevel: z.string().trim().min(1, "Year level is required").max(255),
   advisorId: z.coerce.number().int().positive().nullable().optional(),
+  departmentId: z.coerce.number().int().positive().nullable().optional(),
+});
+
+export const departmentSchema = z.object({
+  name: z.string().trim().min(1, "Department name is required").max(255),
 });
 
 export const subjectSchema = z.object({

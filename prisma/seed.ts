@@ -32,6 +32,9 @@ function resolveDevPasswords(): { admin: string; faculty: string } {
 }
 
 const BCRYPT_COST = 10;
+
+// Department seeding — the three colleges the blocks module groups by.
+const DEPARTMENTS_SEED = ["IT Department", "Education Department", "Agriculture Department"];
 const DEV_PASSWORDS = resolveDevPasswords();
 const DEV_FACULTY_PASSWORD = DEV_PASSWORDS.faculty;
 const DEV_ADMIN_USERNAME = "admin";
@@ -207,6 +210,16 @@ async function main() {
     await tx.user.deleteMany();
     await tx.subject.deleteMany();
     await tx.room.deleteMany();
+    await tx.department.deleteMany();
+
+    // --- Departments (IT / Education / Agriculture) ---
+    const departmentIds = new Map<string, number>();
+    for (const name of DEPARTMENTS_SEED) {
+      const d = await tx.department.create({ data: { name } });
+      departmentIds.set(name, d.id);
+    }
+    const educationId = departmentIds.get("Education Department");
+    if (!educationId) throw new Error("Seed: Education Department missing");
 
     // --- Users (admin + faculty) ---
     const adminUser = await tx.user.create({
@@ -255,10 +268,13 @@ async function main() {
       roomIds.set(name, r.id);
     }
 
-    // --- Blocks (advisor 'None' in dump → advisorId null) ---
+    // --- Blocks (advisor 'None' in dump → advisorId null; all legacy blocks
+    //     belong to the Education Department) ---
     const blockIds = new Map<string, number>();
     for (const b of blocksSeed) {
-      const blk = await tx.block.create({ data: { name: b.name, yearLevel: b.yearLevel, advisorId: null } });
+      const blk = await tx.block.create({
+        data: { name: b.name, yearLevel: b.yearLevel, advisorId: null, departmentId: educationId },
+      });
       blockIds.set(b.name, blk.id);
     }
 

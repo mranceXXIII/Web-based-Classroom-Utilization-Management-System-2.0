@@ -28,13 +28,15 @@ export function toFacultyDTO(profile: FacultyWithUser): FacultyDTO {
   };
 }
 
-export function toBlockDTO(block: BlockWithAdvisor): BlockDTO {
+export function toBlockDTO(block: BlockWithAdvisor & { department?: { id: number; name: string } | null }): BlockDTO {
   return {
     id: block.id,
     name: block.name,
     yearLevel: block.yearLevel,
     advisorId: block.advisorId,
     advisorName: block.advisor?.name ?? null,
+    departmentId: block.department?.id ?? null,
+    departmentName: block.department?.name ?? null,
   };
 }
 

@@ -9,7 +9,7 @@ import { blockSchema, idBodySchema, idSchema } from "@/lib/schemas";
 
 export async function GET() {
   try {
-    const blocks = await db.block.findMany({ include: { advisor: true }, orderBy: { id: "asc" } });
+    const blocks = await db.block.findMany({ include: { advisor: true, department: true }, orderBy: { id: "asc" } });
     return jsonOk(blocks.map(toBlockDTO));
   } catch (e) {
     return internalError(e);
@@ -23,7 +23,7 @@ export async function POST(req: Request) {
   if ("err" in g) return g.err;
   const parsed = await parseJson(req, blockSchema);
   if ("err" in parsed) return parsed.err;
-  const { name, yearLevel, advisorId } = parsed.data;
+  const { name, yearLevel, advisorId, departmentId } = parsed.data;
   try {
     const blocks = await db.block.findMany();
     if (findByNameCi(blocks, (b) => b.name, name)) {
@@ -32,9 +32,12 @@ export async function POST(req: Request) {
     if (advisorId != null && !(await db.facultyProfile.findUnique({ where: { id: advisorId } }))) {
       return jsonError(400, "Advisor not found", { advisorId: "Unknown faculty id" });
     }
+    if (departmentId != null && !(await db.department.findUnique({ where: { id: departmentId } }))) {
+      return jsonError(400, "Department not found", { departmentId: "Unknown department id" });
+    }
     const block = await db.block.create({
-      data: { name, yearLevel, advisorId: advisorId ?? null },
-      include: { advisor: true },
+      data: { name, yearLevel, advisorId: advisorId ?? null, departmentId: departmentId ?? null },
+      include: { advisor: true, department: true },
     });
     return jsonOk(toBlockDTO(block));
   } catch (e) {
@@ -49,7 +52,7 @@ export async function PUT(req: Request) {
   if ("err" in g) return g.err;
   const parsed = await parseJson(req, blockSchema.merge(idBodySchema));
   if ("err" in parsed) return parsed.err;
-  const { id, name, yearLevel, advisorId } = parsed.data;
+  const { id, name, yearLevel, advisorId, departmentId } = parsed.data;
   try {
     const existing = await db.block.findUnique({ where: { id } });
     if (!existing) return jsonError(404, "Block not found");
@@ -59,10 +62,13 @@ export async function PUT(req: Request) {
     if (advisorId != null && !(await db.facultyProfile.findUnique({ where: { id: advisorId } }))) {
       return jsonError(400, "Advisor not found", { advisorId: "Unknown faculty id" });
     }
+    if (departmentId != null && !(await db.department.findUnique({ where: { id: departmentId } }))) {
+      return jsonError(400, "Department not found", { departmentId: "Unknown department id" });
+    }
     const block = await db.block.update({
       where: { id },
-      data: { name, yearLevel, advisorId: advisorId ?? null },
-      include: { advisor: true },
+      data: { name, yearLevel, advisorId: advisorId ?? null, departmentId: departmentId ?? null },
+      include: { advisor: true, department: true },
     });
     return jsonOk(toBlockDTO(block));
   } catch (e) {
