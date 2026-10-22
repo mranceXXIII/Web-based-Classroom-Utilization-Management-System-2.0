@@ -34,9 +34,10 @@ model FacultyProfile {
 }
 
 model Department {
-  id     Int     @id @default(autoincrement())
-  name   String  @unique
-  blocks Block[]
+  id       Int       @id @default(autoincrement())
+  name     String    @unique
+  blocks   Block[]
+  subjects Subject[]
 }
 
 model Block {
@@ -57,9 +58,16 @@ model Block {
 }
 
 model Subject {
-  id          Int        @id @default(autoincrement())
-  description String     @unique
+  id          Int         @id @default(autoincrement())
+  description String      @unique
+  // Subjects are organized per department and year level (legacy rows default
+  // to "Not specified" — the legacy subject table had no year/department).
+  yearLevel   String      @default("Not specified")
+  departmentId Int?
+  department  Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
   schedules   Schedule[]
+
+  @@index([departmentId])
 }
 
 model Room {

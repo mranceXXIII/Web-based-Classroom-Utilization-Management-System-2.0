@@ -258,9 +258,12 @@ async function main() {
       facultyIds.set(f.name, profile.id);
     }
 
-    // --- Subjects / Rooms ---
+    // --- Subjects / Rooms (legacy subjects → Education Department, year "Not
+    //     specified": the legacy table had no year/department columns) ---
     for (const description of subjectsSeed) {
-      await tx.subject.create({ data: { description } });
+      await tx.subject.create({
+        data: { description, yearLevel: "Not specified", departmentId: educationId },
+      });
     }
     const roomIds = new Map<string, number>();
     for (const name of roomsSeed) {

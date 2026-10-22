@@ -54,12 +54,12 @@ export const mockBlocks: BlockDTO[] = [
 ];
 
 export const mockSubjects: SubjectDTO[] = [
-  { id: 1, description: "Professional Education 101" }, // sample rows
-  { id: 2, description: "Facilitating Learner-Centered Teaching" },
-  { id: 3, description: "Assessment in Learning 1" },
-  { id: 4, description: "The Teacher and the School Curriculum" },
-  { id: 5, description: "Technology for Teaching and Learning 1" },
-  { id: 6, description: "Field Study 1" },
+  { id: 1, departmentId: 2, departmentName: "Education Department", yearLevel: "Not specified", description: "Professional Education 101" }, // sample rows
+  { id: 2, departmentId: 2, departmentName: "Education Department", yearLevel: "Not specified", description: "Facilitating Learner-Centered Teaching" },
+  { id: 3, departmentId: 2, departmentName: "Education Department", yearLevel: "Not specified", description: "Assessment in Learning 1" },
+  { id: 4, departmentId: 2, departmentName: "Education Department", yearLevel: "Not specified", description: "The Teacher and the School Curriculum" },
+  { id: 5, departmentId: 2, departmentName: "Education Department", yearLevel: "Not specified", description: "Technology for Teaching and Learning 1" },
+  { id: 6, departmentId: 2, departmentName: "Education Department", yearLevel: "Not specified", description: "Field Study 1" },
 ];
 
 export const mockRooms: RoomDTO[] = [

@@ -40,8 +40,17 @@ export function toBlockDTO(block: BlockWithAdvisor & { department?: { id: number
   };
 }
 
-export function toSubjectDTO(subject: { id: number; description: string }): SubjectDTO {
-  return { id: subject.id, description: subject.description };
+export function toSubjectDTO(subject: { id: number; description: string } & {
+  yearLevel?: string;
+  department?: { id: number; name: string } | null;
+}): SubjectDTO {
+  return {
+    id: subject.id,
+    description: subject.description,
+    yearLevel: subject.yearLevel ?? "Not specified",
+    departmentId: subject.department?.id ?? null,
+    departmentName: subject.department?.name ?? null,
+  };
 }
 
 export function toRoomDTO(room: { id: number; name: string }): RoomDTO {

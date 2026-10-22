@@ -60,6 +60,8 @@ export const departmentSchema = z.object({
 
 export const subjectSchema = z.object({
   description: z.string().trim().min(1, "Description is required").max(250),
+  yearLevel: z.string().trim().min(1, "Year level is required").max(255),
+  departmentId: z.coerce.number().int().positive().nullable().optional(),
 });
 
 export const roomSchema = z.object({

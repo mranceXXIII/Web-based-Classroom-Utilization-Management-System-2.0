@@ -9,7 +9,7 @@ export interface UserDTO { id: number; username: string; role: Role; }
 export interface FacultyDTO { id: number; name: string; academicRank: string; advisory: string; lastHeartbeat: string | null; hasAccount: boolean; }
 export interface DepartmentDTO { id: number; name: string; }
 export interface BlockDTO { id: number; name: string; yearLevel: string; advisorId: number | null; advisorName: string | null; departmentId: number | null; departmentName: string | null; }
-export interface SubjectDTO { id: number; description: string; }
+export interface SubjectDTO { id: number; description: string; yearLevel: string; departmentId: number | null; departmentName: string | null; }
 export interface RoomDTO { id: number; name: string; }
 export interface ScheduleDTO {
   id: number; semester: string; startTime: string; endTime: string; days: DayCode[];

@@ -71,11 +71,14 @@ export async function DELETE(req: Request) {
   try {
     const existing = await db.department.findUnique({
       where: { id: id.data },
-      include: { _count: { select: { blocks: true } } },
+      include: { _count: { select: { blocks: true, subjects: true } } },
     });
     if (!existing) return jsonError(404, "Department not found");
-    if (existing._count.blocks > 0) {
-      return jsonError(409, `Department still has ${existing._count.blocks} block(s) — move or delete them first`);
+    if (existing._count.blocks > 0 || existing._count.subjects > 0) {
+      const parts: string[] = [];
+      if (existing._count.blocks > 0) parts.push(`${existing._count.blocks} block(s)`);
+      if (existing._count.subjects > 0) parts.push(`${existing._count.subjects} subject(s)`);
+      return jsonError(409, `Department still has ${parts.join(" and ")} — move or delete them first`);
     }
     await db.department.delete({ where: { id: id.data } });
     return jsonOk({ ok: true });
